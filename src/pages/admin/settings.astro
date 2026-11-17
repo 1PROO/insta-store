@@ -1,0 +1,44 @@
+---
+import SettingsManager from '../../components/admin/SettingsManager';
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getAuthenticatedAdmin } from '../../lib/auth/guard';
+import { getD1Collections, getD1ShippingZones } from '../../lib/data/d1-store';
+import type { Coupon } from '../../lib/domain/types';
+import { getWorkerEnv } from '../../lib/env';
+
+const admin = await getAuthenticatedAdmin(Astro.cookies);
+if (!admin) return Astro.redirect('/admin/login');
+
+const env = await getWorkerEnv();
+const [collections, zones, couponsRes] = env.DB
+	? await Promise.all([
+			getD1Collections(env.DB, true),
+			getD1ShippingZones(env.DB, true),
+			env.DB.prepare('SELECT * FROM coupons ORDER BY code ASC').all<Record<string, unknown>>(),
+		])
+	: [[], [], { results: [] }];
+
+const coupons: Coupon[] = couponsRes.results.map((r) => ({
+	id: String(r.id),
+	code: String(r.code),
+	type: r.type === 'fixed' ? 'fixed' : 'percentage',
+	value: Number(r.value),
+	minSubtotal: r.min_subtotal ? Number(r.min_subtotal) : null,
+	maxUses: r.max_uses ? Number(r.max_uses) : null,
+	usedCount: Number(r.used_count),
+	expiresAt: r.expires_at ? String(r.expires_at) : null,
+	isActive: Number(r.is_active) === 1,
+}));
+---
+
+<AdminLayout title="الإعدادات" activeTab="settings" mustChangePassword={admin.must_change_password === 1}>
+	<div class="space-y-4">
+		<h1 class="text-xl font-extrabold">الأقسام، الشحن، الكوبونات، والأمان</h1>
+		<SettingsManager
+			client:load
+			initialCollections={collections}
+			initialZones={zones}
+			initialCoupons={coupons}
+		/>
+	</div>
+</AdminLayout>

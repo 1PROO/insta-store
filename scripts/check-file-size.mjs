@@ -24,7 +24,8 @@ for (const file of getRepoFiles()) {
 		file.startsWith('.astro/') ||
 		file.startsWith('.wrangler/') ||
 		file.startsWith('.motalim/') ||
-		file === 'package-lock.json'
+		file === 'package-lock.json' ||
+		file === 'worker-configuration.d.ts'
 	) {
 		continue;
 	}

@@ -1,0 +1,33 @@
+---
+import ProductsManager from '../../components/admin/ProductsManager';
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getAuthenticatedAdmin } from '../../lib/auth/guard';
+import { getD1Collections, getD1Products, getD1StoreConfig } from '../../lib/data/d1-store';
+import { getWorkerEnv } from '../../lib/env';
+
+const admin = await getAuthenticatedAdmin(Astro.cookies);
+if (!admin) return Astro.redirect('/admin/login');
+
+const env = await getWorkerEnv();
+const [products, trash, collections, cfg] = env.DB
+	? await Promise.all([
+			getD1Products(env.DB, { includeHidden: true }),
+			getD1Products(env.DB, { onlyDeleted: true }),
+			getD1Collections(env.DB, true),
+			getD1StoreConfig(env.DB),
+		])
+	: [[], [], [], null];
+---
+
+<AdminLayout title="المنتجات" activeTab="products" mustChangePassword={admin.must_change_password === 1}>
+	<div class="space-y-4">
+		<h1 class="text-xl font-extrabold">إدارة المنتجات والمخزون</h1>
+		<ProductsManager
+			client:load
+			initialProducts={products}
+			initialTrash={trash}
+			collections={collections}
+			currency={cfg?.currency ?? 'ج.م'}
+		/>
+	</div>
+</AdminLayout>

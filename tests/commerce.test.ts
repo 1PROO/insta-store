@@ -126,5 +126,16 @@ describe('filterCatalogProducts', () => {
 		});
 		expect(shirtsOnly).toHaveLength(1);
 		expect(shirtsOnly[0]?.slug).toBe('relaxed-linen-shirt');
+
+		const bySearchAndColor = filterCatalogProducts(SAMPLE_PRODUCTS, SAMPLE_COLLECTIONS, {
+			query: 'كتان',
+			color: 'بيج رملي',
+		});
+		expect(bySearchAndColor.map((p) => p.slug)).toContain('relaxed-linen-shirt');
+		expect(
+			filterCatalogProducts(SAMPLE_PRODUCTS, SAMPLE_COLLECTIONS, {
+				query: 'nonexistent-keyword-xyz',
+			}),
+		).toHaveLength(0);
 	});
 });

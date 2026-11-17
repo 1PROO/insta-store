@@ -16,11 +16,13 @@ const [allProducts, collections] = await Promise.all([
 ]);
 
 const sizeParam = Astro.url.searchParams.get('size');
+const queryParam = Astro.url.searchParams.get('q');
 const inStockOnly = Astro.url.searchParams.get('inStock') === '1';
 const sortParam = (Astro.url.searchParams.get('sort') as CatalogSort | null) ?? 'newest';
 
 const filtered = filterCatalogProducts(allProducts, collections, {
 	size: sizeParam,
+	query: queryParam,
 	inStockOnly,
 	sort: sortParam,
 });
@@ -34,6 +36,7 @@ const filtered = filterCatalogProducts(allProducts, collections, {
 		currency={config.currency}
 		lang={lang}
 		activeSize={sizeParam}
+		activeQuery={queryParam}
 		inStockOnly={inStockOnly}
 		activeSort={sortParam}
 		basePath="/shop"

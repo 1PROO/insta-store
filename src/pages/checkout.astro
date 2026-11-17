@@ -2,15 +2,18 @@
 import CheckoutForm from '../components/store/CheckoutForm';
 import StoreLayout from '../layouts/StoreLayout.astro';
 import { createStoreRepository, resolveActiveUiLang } from '../lib/data/store-repository';
+import { getWorkerEnv } from '../lib/env';
 import { getUiDict } from '../lib/i18n/ui';
 
 const repo = createStoreRepository();
-const [config, zones] = await Promise.all([
+const [config, zones, env] = await Promise.all([
 	repo.getStoreConfig(Astro.url),
 	repo.getActiveShippingZones(),
+	getWorkerEnv(),
 ]);
 const lang = resolveActiveUiLang(config, Astro.url, Astro.cookies.get('ui_lang')?.value);
 const dict = getUiDict(lang);
+const turnstileSiteKey = env.TURNSTILE_SITE_KEY || null;
 ---
 
 <StoreLayout config={config} lang={lang} pageTitle={dict.checkoutTitle}>
@@ -23,6 +26,7 @@ const dict = getUiDict(lang);
 			lang={lang}
 			whatsappNumber={config.whatsappNumber}
 			globalFreeShippingThreshold={config.globalFreeShippingThreshold}
+			turnstileSiteKey={turnstileSiteKey}
 		/>
 	</div>
 </StoreLayout>

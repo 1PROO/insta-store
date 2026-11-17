@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { addToCart } from '../../lib/commerce/cart-store';
 import type { Product, ProductVariant } from '../../lib/domain/types';
+import SizeGuideModal from './SizeGuideModal';
 
 interface Props {
 	product: Product;
@@ -89,6 +90,7 @@ export default function ProductConfigurator({
 							<button
 								key={img}
 								type="button"
+								aria-label={`${product.title} ${idx + 1}`}
 								onClick={() => setActiveImage(idx)}
 								className={`w-16 h-20 overflow-hidden shrink-0 border-2 ${
 									activeImage === idx ? 'opacity-100' : 'opacity-60'
@@ -99,7 +101,11 @@ export default function ProductConfigurator({
 									borderRadius: 'var(--radius-btn)',
 								}}
 							>
-								<img src={img} alt="" className="w-full h-full object-cover" />
+								<img
+									src={img}
+									alt={`${product.title} ${idx + 1}`}
+									className="w-full h-full object-cover"
+								/>
 							</button>
 						))}
 					</div>
@@ -149,6 +155,7 @@ export default function ProductConfigurator({
 								<button
 									key={v.id}
 									type="button"
+									aria-pressed={active}
 									disabled={soldOut}
 									onClick={() => setSelectedId(v.id)}
 									className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold border transition ${
@@ -261,28 +268,12 @@ export default function ProductConfigurator({
 				)}
 			</div>
 
-			{showGuide && effectiveSizeGuide && (
-				<div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-					<div className="store-surface max-w-md w-full p-5 space-y-3">
-						<div className="flex items-center justify-between">
-							<h2 className="font-bold text-base">{labels.sizeGuide}</h2>
-							<button
-								type="button"
-								onClick={() => setShowGuide(false)}
-								className="text-lg font-bold"
-							>
-								×
-							</button>
-						</div>
-						<p
-							className="text-sm whitespace-pre-line leading-relaxed"
-							style={{ color: 'var(--text-muted)' }}
-						>
-							{effectiveSizeGuide}
-						</p>
-					</div>
-				</div>
-			)}
+			<SizeGuideModal
+				open={showGuide}
+				title={labels.sizeGuide}
+				content={effectiveSizeGuide}
+				onClose={() => setShowGuide(false)}
+			/>
 		</div>
 	);
 }

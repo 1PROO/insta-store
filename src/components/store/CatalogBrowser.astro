@@ -12,6 +12,7 @@ interface Props {
 	lang: UiLang;
 	activeCollectionSlug?: string | null;
 	activeSize?: string | null;
+	activeQuery?: string | null;
 	inStockOnly?: boolean;
 	activeSort?: CatalogSort;
 	basePath: string;
@@ -25,6 +26,7 @@ const {
 	lang,
 	activeCollectionSlug,
 	activeSize,
+	activeQuery,
 	inStockOnly = false,
 	activeSort = 'newest',
 	basePath,
@@ -45,12 +47,20 @@ const sizes = ['S', 'M', 'L', 'XL'];
 
 		<form method="get" action={basePath} class="flex flex-wrap items-center gap-2 text-xs">
 			{activeCollectionSlug && <input type="hidden" name="collection" value={activeCollectionSlug} />}
+			<input
+				type="search"
+				name="q"
+				value={activeQuery ?? ''}
+				placeholder={lang === 'en' ? 'Search...' : 'ابحث عن قطعة...'}
+				class="px-3 py-2 border font-medium w-36 sm:w-44"
+				style="background-color: var(--bg-surface); color: var(--text-primary); border-color: var(--border-subtle); border-radius: var(--radius-btn);"
+			/>
 			<select
 				name="size"
 				aria-label="Filter by size"
 				onchange="this.form.submit()"
-				class="px-3 py-2 border bg-transparent font-semibold"
-				style="border-color: var(--border-subtle); border-radius: var(--radius-btn);"
+				class="px-3 py-2 border font-semibold"
+				style="background-color: var(--bg-surface); color: var(--text-primary); border-color: var(--border-subtle); border-radius: var(--radius-btn);"
 			>
 				<option value="">{dict.filterAllSizes}</option>
 				{
@@ -74,8 +84,8 @@ const sizes = ['S', 'M', 'L', 'XL'];
 				name="sort"
 				aria-label="Sort products"
 				onchange="this.form.submit()"
-				class="px-3 py-2 border bg-transparent font-semibold"
-				style="border-color: var(--border-subtle); border-radius: var(--radius-btn);"
+				class="px-3 py-2 border font-semibold"
+				style="background-color: var(--bg-surface); color: var(--text-primary); border-color: var(--border-subtle); border-radius: var(--radius-btn);"
 			>
 				<option value="newest" selected={activeSort === 'newest'}>{dict.sortNewest}</option>
 				<option value="price_asc" selected={activeSort === 'price_asc'}>{dict.sortPriceAsc}</option>

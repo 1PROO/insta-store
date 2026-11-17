@@ -5,6 +5,8 @@ export type CatalogSort = 'newest' | 'price_asc' | 'price_desc';
 export interface CatalogFilterParams {
 	collectionSlug?: string | null;
 	size?: string | null;
+	color?: string | null;
+	query?: string | null;
 	inStockOnly?: boolean;
 	sort?: CatalogSort;
 }
@@ -21,10 +23,24 @@ export function filterCatalogProducts(
 		result = col ? result.filter((p) => p.collectionId === col.id) : [];
 	}
 
+	if (params.query?.trim()) {
+		const q = params.query.trim().toLowerCase();
+		result = result.filter(
+			(p) => p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q),
+		);
+	}
+
 	if (params.size) {
 		const targetSize = params.size.trim().toUpperCase();
 		result = result.filter((p) =>
 			p.variants.some((v) => v.size.toUpperCase() === targetSize && v.stock > 0),
+		);
+	}
+
+	if (params.color?.trim()) {
+		const targetColor = params.color.trim().toLowerCase();
+		result = result.filter((p) =>
+			p.variants.some((v) => v.colorName.toLowerCase() === targetColor && v.stock > 0),
 		);
 	}
 
