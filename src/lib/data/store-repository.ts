@@ -1,19 +1,37 @@
-import type { Collection, Product, StoreConfig, ThemePresetId, UiLang } from '../domain/types';
+import type {
+	Collection,
+	Coupon,
+	GuestOrder,
+	Product,
+	ShippingZone,
+	StoreConfig,
+	ThemePresetId,
+	UiLang,
+} from '../domain/types';
 import { THEME_PRESETS } from '../theme/presets';
 import { DEFAULT_STORE_CONFIG, SAMPLE_COLLECTIONS, SAMPLE_PRODUCTS } from './sample-catalog';
+import { SAMPLE_COUPONS, SAMPLE_SHIPPING_ZONES } from './sample-shipping';
+
+const memoryOrders: GuestOrder[] = [];
+const memoryIdempotency = new Map<string, GuestOrder>();
 
 export interface StoreRepository {
 	getStoreConfig(url?: URL): Promise<StoreConfig>;
 	getVisibleCollections(): Promise<Collection[]>;
+	getCollectionBySlug(slug: string): Promise<Collection | null>;
 	getFeaturedProducts(): Promise<Product[]>;
 	getPublishedProducts(): Promise<Product[]>;
 	getProductBySlug(slug: string): Promise<Product | null>;
+	getActiveShippingZones(): Promise<ShippingZone[]>;
+	getCouponByCode(code: string): Promise<Coupon | null>;
+	findOrderByIdempotencyKey(key: string): Promise<GuestOrder | null>;
+	saveGuestOrder(order: GuestOrder): Promise<void>;
 }
 
 /**
- * Centralized data pipe ("المواسير"): all Storefront pages read from this
- * interface. Slice 1 serves local sample data matching the D1 schema; Phase 4
- * swaps in the live D1 repository without touching page components.
+ * Centralized data pipe ("المواسير"): all Storefront pages and order APIs
+ * read/write through this interface. Phase 4 swaps D1 persistence behind
+ * this exact interface without rewriting pages.
  */
 export function createStoreRepository(): StoreRepository {
 	return {
@@ -36,6 +54,10 @@ export function createStoreRepository(): StoreRepository {
 			);
 		},
 
+		async getCollectionBySlug(slug: string) {
+			return SAMPLE_COLLECTIONS.find((c) => c.slug === slug && c.isVisible) ?? null;
+		},
+
 		async getFeaturedProducts() {
 			return SAMPLE_PRODUCTS.filter(
 				(p) => p.status === 'published' && p.deletedAt === null && p.isFeatured,
@@ -52,6 +74,25 @@ export function createStoreRepository(): StoreRepository {
 					(p) => p.slug === slug && p.status === 'published' && p.deletedAt === null,
 				) ?? null
 			);
+		},
+
+		async getActiveShippingZones() {
+			return SAMPLE_SHIPPING_ZONES.filter((z) => z.isActive);
+		},
+
+		async getCouponByCode(code: string) {
+			const normalized = code.trim().toUpperCase();
+			if (!normalized) return null;
+			return SAMPLE_COUPONS.find((c) => c.code.toUpperCase() === normalized) ?? null;
+		},
+
+		async findOrderByIdempotencyKey(key: string) {
+			return memoryIdempotency.get(key) ?? null;
+		},
+
+		async saveGuestOrder(order: GuestOrder) {
+			memoryOrders.push(order);
+			memoryIdempotency.set(order.idempotencyKey, order);
 		},
 	};
 }

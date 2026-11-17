@@ -17,6 +17,27 @@ export interface UiDictionary {
 	footerNote: string;
 	langToggleLabel: string;
 	playMotionTip: string;
+	filterAllSizes: string;
+	filterInStock: string;
+	sortNewest: string;
+	sortPriceAsc: string;
+	sortPriceDesc: string;
+	noProductsFound: string;
+	clearFilters: string;
+	addToCart: string;
+	sizeLabel: string;
+	colorLabel: string;
+	sizeGuideLabel: string;
+	descriptionLabel: string;
+	fabricCareLabel: string;
+	shippingInfoLabel: string;
+	readMore: string;
+	readLess: string;
+	askWhatsappProduct: string;
+	emptyCart: string;
+	continueShopping: string;
+	goToCheckout: string;
+	checkoutTitle: string;
 }
 
 const AR_DICT: UiDictionary = {
@@ -36,6 +57,27 @@ const AR_DICT: UiDictionary = {
 	footerNote: 'متجر أزياء قابل للتخصيص بالكامل — متوافق 100% مع الموبايل.',
 	langToggleLabel: 'EN',
 	playMotionTip: 'عرض الحملة',
+	filterAllSizes: 'كل المقاسات',
+	filterInStock: 'المتوفر فقط',
+	sortNewest: 'الأحدث',
+	sortPriceAsc: 'السعر: الأقل',
+	sortPriceDesc: 'السعر: الأعلى',
+	noProductsFound: 'لا توجد قطع مطابقة لهذه الفلاتر حالياً.',
+	clearFilters: 'إزالة الفلاتر',
+	addToCart: 'إضافة إلى السلة',
+	sizeLabel: 'المقاس',
+	colorLabel: 'اللون',
+	sizeGuideLabel: 'دليل المقاسات',
+	descriptionLabel: 'الوصف',
+	fabricCareLabel: 'الخامة والعناية',
+	shippingInfoLabel: 'الشحن والاستبدال',
+	readMore: 'اقرأ المزيد',
+	readLess: 'عرض أقل',
+	askWhatsappProduct: 'استفسار عبر واتساب',
+	emptyCart: 'سلتك فارغة حالياً.',
+	continueShopping: 'تصفح القطع',
+	goToCheckout: 'إتمام الطلب الآن',
+	checkoutTitle: 'إتمام الطلب السريع',
 };
 
 const EN_DICT: UiDictionary = {
@@ -55,6 +97,27 @@ const EN_DICT: UiDictionary = {
 	footerNote: 'White-label mobile-first fashion storefront.',
 	langToggleLabel: 'عربي',
 	playMotionTip: 'Campaign Reel',
+	filterAllSizes: 'All Sizes',
+	filterInStock: 'In Stock Only',
+	sortNewest: 'Newest',
+	sortPriceAsc: 'Price: Low to High',
+	sortPriceDesc: 'Price: High to Low',
+	noProductsFound: 'No garments match your current filters.',
+	clearFilters: 'Clear Filters',
+	addToCart: 'Add to Bag',
+	sizeLabel: 'Size',
+	colorLabel: 'Color',
+	sizeGuideLabel: 'Size Guide',
+	descriptionLabel: 'Description',
+	fabricCareLabel: 'Fabric & Care',
+	shippingInfoLabel: 'Shipping & Returns',
+	readMore: 'Read more',
+	readLess: 'Show less',
+	askWhatsappProduct: 'Ask on WhatsApp',
+	emptyCart: 'Your bag is currently empty.',
+	continueShopping: 'Browse Pieces',
+	goToCheckout: 'Proceed to Checkout',
+	checkoutTitle: 'Fast Guest Checkout',
 };
 
 export function getUiDict(lang: UiLang): UiDictionary {

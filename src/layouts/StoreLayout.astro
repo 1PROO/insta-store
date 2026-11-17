@@ -1,4 +1,5 @@
 ---
+import CartDrawer from '../components/store/CartDrawer';
 import type { StoreConfig, UiLang } from '../lib/domain/types';
 import { getUiDict } from '../lib/i18n/ui';
 import { renderThemeCssVariables, resolveThemeTokens } from '../lib/theme/presets';
@@ -96,8 +97,9 @@ const whatsappHref = config.whatsappNumber
 							</a>
 						)
 					}
-					<a
-						href="/checkout"
+					<button
+						type="button"
+						id="headerCartBtn"
 						class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 store-btn-outline"
 					>
 						<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
@@ -109,7 +111,7 @@ const whatsappHref = config.whatsappNumber
 						</svg>
 						<span>{dict.cartLabel}</span>
 						<span id="headerCartCount" class="text-[11px] opacity-75">(0)</span>
-					</a>
+					</button>
 				</div>
 			</div>
 
@@ -169,12 +171,28 @@ const whatsappHref = config.whatsappNumber
 			</div>
 		</footer>
 
+		<CartDrawer
+			client:load
+			currency={config.currency}
+			lang={lang}
+			emptyText={dict.emptyCart}
+			continueText={dict.continueShopping}
+			checkoutText={dict.goToCheckout}
+			cartLabel={dict.cartLabel}
+		/>
+
 		<script is:inline>
 			const menuBtn = document.getElementById('mobileMenuBtn');
 			const drawer = document.getElementById('mobileDrawer');
 			if (menuBtn && drawer) {
 				menuBtn.addEventListener('click', () => {
 					drawer.classList.toggle('hidden');
+				});
+			}
+			const cartBtn = document.getElementById('headerCartBtn');
+			if (cartBtn) {
+				cartBtn.addEventListener('click', () => {
+					window.dispatchEvent(new CustomEvent('insta-store:open-cart'));
 				});
 			}
 		</script>

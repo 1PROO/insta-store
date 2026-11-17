@@ -1,0 +1,46 @@
+---
+import CatalogBrowser from '../../components/store/CatalogBrowser.astro';
+import StoreLayout from '../../layouts/StoreLayout.astro';
+import { type CatalogSort, filterCatalogProducts } from '../../lib/commerce/catalog-filter';
+import { createStoreRepository, resolveActiveUiLang } from '../../lib/data/store-repository';
+
+const slug = Astro.params.slug ?? '';
+const repo = createStoreRepository();
+const [config, collection, allProducts, collections] = await Promise.all([
+	repo.getStoreConfig(Astro.url),
+	repo.getCollectionBySlug(slug),
+	repo.getPublishedProducts(),
+	repo.getVisibleCollections(),
+]);
+
+if (!collection) {
+	return Astro.redirect('/shop');
+}
+
+const lang = resolveActiveUiLang(config, Astro.url, Astro.cookies.get('ui_lang')?.value);
+const sizeParam = Astro.url.searchParams.get('size');
+const inStockOnly = Astro.url.searchParams.get('inStock') === '1';
+const sortParam = (Astro.url.searchParams.get('sort') as CatalogSort | null) ?? 'newest';
+
+const filtered = filterCatalogProducts(allProducts, collections, {
+	collectionSlug: collection.slug,
+	size: sizeParam,
+	inStockOnly,
+	sort: sortParam,
+});
+---
+
+<StoreLayout config={config} lang={lang} pageTitle={collection.name}>
+	<CatalogBrowser
+		title={collection.name}
+		products={filtered}
+		collections={collections}
+		currency={config.currency}
+		lang={lang}
+		activeCollectionSlug={collection.slug}
+		activeSize={sizeParam}
+		inStockOnly={inStockOnly}
+		activeSort={sortParam}
+		basePath={`/c/${collection.slug}`}
+	/>
+</StoreLayout>
