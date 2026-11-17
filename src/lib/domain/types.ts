@@ -145,3 +145,62 @@ export interface GuestOrder {
 	idempotencyKey: string;
 	createdAt: string;
 }
+
+export interface HeroHotspot {
+	productSlug: string;
+	label: string;
+	priceLabel: string;
+	xPercent: number;
+	yPercent: number;
+}
+
+export interface PromoCard {
+	id: string;
+	title: string;
+	subtitle: string;
+	ctaLabel: string;
+	ctaHref: string;
+	imageUrl: string;
+}
+
+export interface BrandStoryBlock {
+	eyebrow: string;
+	title: string;
+	body: string;
+	ctaLabel: string;
+	ctaHref: string;
+	primaryImageUrl: string;
+	secondaryImageUrl: string;
+}
+
+export interface LookbookSlide {
+	id: string;
+	title: string;
+	subtitle: string;
+	ctaLabel: string;
+	ctaHref: string;
+	imageUrl: string;
+}
+
+export interface LookbookTile {
+	id: string;
+	label: string;
+	href: string;
+	imageUrl: string;
+}
+
+export interface ValuePillar {
+	id: string;
+	icon: 'fabric' | 'exchange' | 'delivery';
+	title: string;
+	description: string;
+}
+
+export interface HomepageSections {
+	heroHotspots: HeroHotspot[];
+	promoCards: PromoCard[];
+	brandStory: BrandStoryBlock | null;
+	lookbookSlides: LookbookSlide[];
+	lookbookTiles: LookbookTile[];
+	valuePillars: ValuePillar[];
+}

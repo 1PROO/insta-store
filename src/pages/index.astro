@@ -1,7 +1,12 @@
 ---
+import BrandStorySplit from '../components/store/BrandStorySplit.astro';
 import CollectionGrid from '../components/store/CollectionGrid.astro';
 import HeroVideo from '../components/store/HeroVideo.astro';
-import ProductCard from '../components/store/ProductCard.astro';
+import LookbookGrid from '../components/store/LookbookGrid.astro';
+import LookbookSlideshow from '../components/store/LookbookSlideshow';
+import ProductShelf from '../components/store/ProductShelf.astro';
+import PromoGrid from '../components/store/PromoGrid.astro';
+import ValuePillars from '../components/store/ValuePillars.astro';
 import StoreLayout from '../layouts/StoreLayout.astro';
 import { createStoreRepository, resolveActiveUiLang } from '../lib/data/store-repository';
 import { getUiDict } from '../lib/i18n/ui';
@@ -11,37 +16,42 @@ const config = await repo.getStoreConfig(Astro.url);
 const lang = resolveActiveUiLang(config, Astro.url, Astro.cookies.get('ui_lang')?.value);
 const dict = getUiDict(lang);
 
-const [collections, featuredProducts] = await Promise.all([
+const [collections, featuredProducts, allProducts, sections] = await Promise.all([
 	repo.getVisibleCollections(),
 	repo.getFeaturedProducts(),
+	repo.getPublishedProducts(),
+	repo.getHomepageSections(),
 ]);
 ---
 
 <StoreLayout config={config} lang={lang}>
-	<HeroVideo config={config} lang={lang} />
+	<HeroVideo config={config} lang={lang} hotspots={sections.heroHotspots} />
 
 	<CollectionGrid collections={collections} lang={lang} />
 
-	{
-		featuredProducts.length > 0 && (
-			<section class="max-w-6xl mx-auto px-4 pt-12 sm:pt-16">
-				<div class="flex items-center justify-between mb-5">
-					<h2 class="text-lg sm:text-2xl font-bold tracking-tight">{dict.featuredTitle}</h2>
-					<a
-						href="/shop"
-						class="text-xs font-semibold underline underline-offset-4"
-						style="color: var(--text-muted);"
-					>
-						{dict.viewAll}
-					</a>
-				</div>
+	<ProductShelf
+		title={lang === 'en' ? 'Everyday Essentials' : 'الأساسيات اليومية'}
+		products={featuredProducts}
+		currency={config.currency}
+		lang={lang}
+		layout="grid"
+	/>
 
-				<div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
-					{featuredProducts.map((product) => (
-						<ProductCard product={product} currency={config.currency} lang={lang} />
-					))}
-				</div>
-			</section>
-		)
-	}
+	<PromoGrid cards={sections.promoCards} />
+
+	<ProductShelf
+		title={dict.featuredTitle}
+		products={allProducts}
+		currency={config.currency}
+		lang={lang}
+		layout="carousel"
+	/>
+
+	<BrandStorySplit story={sections.brandStory} />
+
+	<LookbookSlideshow client:visible slides={sections.lookbookSlides} />
+
+	<LookbookGrid tiles={sections.lookbookTiles} lang={lang} />
+
+	<ValuePillars pillars={sections.valuePillars} />
 </StoreLayout>
