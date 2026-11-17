@@ -1,9 +1,15 @@
 ---
 import ProductCard from '../components/store/ProductCard.astro';
 import StoreLayout from '../layouts/StoreLayout.astro';
+import { getAuthenticatedAdmin } from '../lib/auth/guard';
 import { createStoreRepository, resolveActiveUiLang } from '../lib/data/store-repository';
 import type { ThemePresetId } from '../lib/domain/types';
 import { getContrastRatio, THEME_PRESETS } from '../lib/theme/presets';
+
+const admin = await getAuthenticatedAdmin(Astro.cookies);
+if (!admin) {
+	return Astro.redirect('/admin/login');
+}
 
 const repo = createStoreRepository();
 const config = await repo.getStoreConfig(Astro.url);

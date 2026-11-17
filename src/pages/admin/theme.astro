@@ -17,7 +17,17 @@ const sections = env.DB ? await getD1HomepageSections(env.DB) : SAMPLE_HOMEPAGE_
 
 <AdminLayout title="الهوية والتصميم" activeTab="theme" mustChangePassword={admin.must_change_password === 1}>
 	<div class="space-y-4">
-		<h1 class="text-xl font-extrabold">تخصيص الهوية والصفحة الرئيسية</h1>
+		<div class="flex flex-wrap items-center justify-between gap-2">
+			<h1 class="text-xl font-extrabold">تخصيص الهوية والصفحة الرئيسية</h1>
+			<a
+				href="/design-system"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="px-3 py-1.5 rounded-xl border border-slate-700 text-xs font-bold text-slate-200 hover:border-sky-500"
+			>
+				معاينة نظام التصميم والباليتات ↗
+			</a>
+		</div>
 		<ThemeEditor client:load initialConfig={config} initialSections={sections} />
 	</div>
 </AdminLayout>
