@@ -16,6 +16,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	const isPublicStorefrontGet =
 		context.request.method === 'GET' &&
 		!pathname.startsWith('/admin') &&
+		!pathname.startsWith('/design-system') &&
 		!pathname.startsWith('/api/') &&
 		!pathname.startsWith('/checkout') &&
 		!context.url.searchParams.has('lang') &&
@@ -37,7 +38,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
 		response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 	}
 
-	if (pathname.startsWith('/admin') || pathname.startsWith('/api/')) {
+	if (
+		pathname.startsWith('/admin') ||
+		pathname.startsWith('/design-system') ||
+		pathname.startsWith('/api/')
+	) {
 		response.headers.set('Cache-Control', 'no-store');
 	} else if (isPublicStorefrontGet && response.status === 200) {
 		await putEdgeCachedResponse(context.request, response);

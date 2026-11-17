@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'https://edge-cache.internal/v1';
-const TRACKED_PATHS = ['/', '/shop', '/design-system', '/sitemap.xml'];
+const TRACKED_PATHS = ['/', '/shop', '/sitemap.xml'];
 
 /**
  * Caches public Storefront GET HTML in Cloudflare Cache API (caches.default)
