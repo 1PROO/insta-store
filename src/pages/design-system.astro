@@ -1,0 +1,88 @@
+---
+import ProductCard from '../components/store/ProductCard.astro';
+import StoreLayout from '../layouts/StoreLayout.astro';
+import { createStoreRepository, resolveActiveUiLang } from '../lib/data/store-repository';
+import type { ThemePresetId } from '../lib/domain/types';
+import { getContrastRatio, THEME_PRESETS } from '../lib/theme/presets';
+
+const repo = createStoreRepository();
+const config = await repo.getStoreConfig(Astro.url);
+const lang = resolveActiveUiLang(config, Astro.url, Astro.cookies.get('ui_lang')?.value);
+const products = await repo.getFeaturedProducts();
+
+const presetList: Array<{ id: ThemePresetId; label: string }> = [
+	{ id: 'flagship_editorial', label: 'Flagship Editorial' },
+	{ id: 'warm_dune', label: 'Warm Dune' },
+	{ id: 'minimal_clean', label: 'Minimal Clean' },
+	{ id: 'midnight_streetwear', label: 'Midnight Streetwear' },
+];
+---
+
+<StoreLayout config={config} lang={lang} pageTitle="Design System">
+	<div class="max-w-6xl mx-auto px-4 py-8 space-y-10">
+		<section class="store-surface p-5 sm:p-7">
+			<p class="text-xs font-bold uppercase tracking-widest mb-2" style="color: var(--text-muted);">
+				DESIGN_SYSTEM.md Showcase
+			</p>
+			<h1 class="text-2xl sm:text-3xl font-extrabold mb-2">
+				عرض نظام التصميم والباليتات الـ 4 (Impulse Style)
+			</h1>
+			<p class="text-sm leading-relaxed mb-5" style="color: var(--text-muted);">
+				جرّب التبديل بين الباليتات الأربعة مباشرة لترى تطبيق التوكنز على الأزرار والخلفيات والكروت بدون
+				أي تعارض في التباين.
+			</p>
+
+			<div class="flex flex-wrap gap-2.5">
+				{
+					presetList.map((p) => {
+						const active = config.presetId === p.id;
+						const palette = THEME_PRESETS[p.id];
+						const ratio = getContrastRatio(palette.btnBg, palette.btnText).toFixed(1);
+						return (
+							<a
+								href={`/design-system?preset=${p.id}`}
+								class={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-bold border ${
+									active ? 'ring-2 ring-offset-1' : ''
+								}`}
+								style={`border-color: var(--border-subtle); border-radius: var(--radius-btn); background-color: ${palette.bgSurface}; color: ${palette.textPrimary};`}
+							>
+								<span
+									class="w-3.5 h-3.5 rounded-full border"
+									style={`background-color: ${palette.btnBg}; border-color: ${palette.borderSubtle};`}
+								/>
+								<span>{p.label}</span>
+								<span class="opacity-65">({ratio}:1)</span>
+							</a>
+						);
+					})
+				}
+			</div>
+		</section>
+
+		<section class="store-surface p-5 sm:p-7 space-y-4">
+			<h2 class="text-lg font-bold">الأزرار والحالات (Buttons & Controls)</h2>
+			<div class="flex flex-wrap gap-3">
+				<button type="button" class="px-5 py-2.5 text-sm font-bold store-btn-primary">
+					إضافة إلى السلة
+				</button>
+				<button type="button" class="px-5 py-2.5 text-sm font-semibold store-btn-outline">
+					دليل المقاسات
+				</button>
+				<button
+					type="button"
+					disabled
+					class="px-5 py-2.5 text-sm font-semibold opacity-45 cursor-not-allowed store-btn-outline"
+				>
+					نفذت الكمية
+				</button>
+			</div>
+		</section>
+
+		<section class="space-y-4">
+			<h2 class="text-lg font-bold">كروت المنتجات (Sample Cards — 0 بيانات وهمية)</h2>
+			<div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
+				{products.map((product) => <ProductCard product={product} currency={config.currency} lang={lang} />)}
+			</div>
+		</section>
+	</div>
+</StoreLayout>

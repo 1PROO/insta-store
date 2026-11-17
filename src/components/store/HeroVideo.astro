@@ -1,0 +1,89 @@
+---
+import type { StoreConfig, UiLang } from '../../lib/domain/types';
+import { getUiDict } from '../../lib/i18n/ui';
+
+interface Props {
+	config: StoreConfig;
+	lang: UiLang;
+}
+
+const { config, lang } = Astro.props;
+const dict = getUiDict(lang);
+---
+
+<section class="relative w-full h-[68vh] min-h-[420px] max-h-[640px] overflow-hidden bg-neutral-900">
+	<img
+		src={config.heroPosterUrl}
+		alt={config.heroTitle}
+		fetchpriority="high"
+		decoding="async"
+		class="absolute inset-0 w-full h-full object-cover"
+	/>
+
+	{
+		config.heroVideoUrl && (
+			<video
+				id="heroReelVideo"
+				data-src={config.heroVideoUrl}
+				poster={config.heroPosterUrl}
+				muted
+				loop
+				playsinline
+				preload="none"
+				class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500"
+			/>
+		)
+	}
+
+	<div
+		class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/15"
+		aria-hidden="true"
+	>
+	</div>
+
+	<div class="relative z-10 max-w-6xl mx-auto h-full px-4 pb-10 sm:pb-14 flex flex-col justify-end">
+		<div class="max-w-xl text-white">
+			<span class="inline-block text-[11px] font-semibold uppercase tracking-[0.18em] text-white/80 mb-2">
+				{dict.playMotionTip}
+			</span>
+			<h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight mb-3">
+				{config.heroTitle}
+			</h1>
+			{
+				config.heroSubtitle && (
+					<p class="text-sm sm:text-base text-white/85 mb-6 leading-relaxed">
+						{config.heroSubtitle}
+					</p>
+				)
+			}
+			<a
+				href={config.heroCtaHref}
+				class="inline-flex items-center justify-center px-6 py-3 text-sm font-bold transition-transform active:scale-95"
+				style="background-color: var(--btn-bg); color: var(--btn-text); border-radius: var(--radius-btn);"
+			>
+				{config.heroCtaLabel}
+			</a>
+		</div>
+	</div>
+</section>
+
+<script is:inline>
+	const video = document.getElementById('heroReelVideo');
+	if (video instanceof HTMLVideoElement) {
+		const conn = navigator.connection;
+		const saveData = Boolean(conn && conn.saveData);
+		const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		const src = video.getAttribute('data-src');
+		if (src && !saveData && !reducedMotion) {
+			video.src = src;
+			video.addEventListener(
+				'canplay',
+				() => {
+					video.classList.remove('opacity-0');
+					video.play().catch(() => {});
+				},
+				{ once: true },
+			);
+		}
+	}
+</script>
