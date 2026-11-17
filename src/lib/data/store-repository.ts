@@ -2,6 +2,7 @@ import type {
 	Collection,
 	Coupon,
 	GuestOrder,
+	HomepageSections,
 	Product,
 	ShippingZone,
 	StoreConfig,
@@ -10,6 +11,7 @@ import type {
 } from '../domain/types';
 import { THEME_PRESETS } from '../theme/presets';
 import { DEFAULT_STORE_CONFIG, SAMPLE_COLLECTIONS, SAMPLE_PRODUCTS } from './sample-catalog';
+import { SAMPLE_HOMEPAGE_SECTIONS } from './sample-sections';
 import { SAMPLE_COUPONS, SAMPLE_SHIPPING_ZONES } from './sample-shipping';
 
 const memoryOrders: GuestOrder[] = [];
@@ -22,6 +24,7 @@ export interface StoreRepository {
 	getFeaturedProducts(): Promise<Product[]>;
 	getPublishedProducts(): Promise<Product[]>;
 	getProductBySlug(slug: string): Promise<Product | null>;
+	getHomepageSections(): Promise<HomepageSections>;
 	getActiveShippingZones(): Promise<ShippingZone[]>;
 	getCouponByCode(code: string): Promise<Coupon | null>;
 	findOrderByIdempotencyKey(key: string): Promise<GuestOrder | null>;
@@ -74,6 +77,10 @@ export function createStoreRepository(): StoreRepository {
 					(p) => p.slug === slug && p.status === 'published' && p.deletedAt === null,
 				) ?? null
 			);
+		},
+
+		async getHomepageSections() {
+			return SAMPLE_HOMEPAGE_SECTIONS;
 		},
 
 		async getActiveShippingZones() {

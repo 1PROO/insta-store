@@ -1,0 +1,44 @@
+---
+import type { PromoCard } from '../../lib/domain/types';
+
+interface Props {
+	cards: PromoCard[];
+}
+
+const { cards } = Astro.props;
+---
+
+{
+	cards.length > 0 && (
+		<section class="max-w-6xl mx-auto px-4 pt-12 sm:pt-16">
+			<div class="grid md:grid-cols-2 gap-4 sm:gap-6">
+				{cards.map((card) => (
+					<a
+						href={card.ctaHref}
+						class="group relative block overflow-hidden store-card aspect-[4/5] sm:aspect-[5/4]"
+					>
+						<img
+							src={card.imageUrl}
+							alt={card.title}
+							loading="lazy"
+							class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+						/>
+						<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+						<div class="absolute bottom-5 start-5 end-5 text-white space-y-2">
+							<h3 class="text-xl sm:text-2xl font-extrabold">{card.title}</h3>
+							<p class="text-xs sm:text-sm text-white/85 leading-relaxed max-w-md">
+								{card.subtitle}
+							</p>
+							<span
+								class="inline-block mt-1 px-4 py-2 text-xs font-bold"
+								style="background-color: var(--btn-bg); color: var(--btn-text); border-radius: var(--radius-btn);"
+							>
+								{card.ctaLabel}
+							</span>
+						</div>
+					</a>
+				))}
+			</div>
+		</section>
+	)
+}

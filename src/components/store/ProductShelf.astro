@@ -1,0 +1,50 @@
+---
+import type { Product, UiLang } from '../../lib/domain/types';
+import { getUiDict } from '../../lib/i18n/ui';
+import ProductCard from './ProductCard.astro';
+
+interface Props {
+	title: string;
+	products: Product[];
+	currency: string;
+	lang: UiLang;
+	layout?: 'grid' | 'carousel';
+	viewAllHref?: string;
+}
+
+const { title, products, currency, lang, layout = 'grid', viewAllHref = '/shop' } = Astro.props;
+const dict = getUiDict(lang);
+---
+
+{
+	products.length > 0 && (
+		<section class="max-w-6xl mx-auto px-4 pt-12 sm:pt-16">
+			<div class="flex items-center justify-between mb-5">
+				<h2 class="text-lg sm:text-2xl font-bold tracking-tight">{title}</h2>
+				<a
+					href={viewAllHref}
+					class="text-xs font-semibold underline underline-offset-4"
+					style="color: var(--text-muted);"
+				>
+					{dict.viewAll}
+				</a>
+			</div>
+
+			{layout === 'carousel' ? (
+				<div class="flex md:grid md:grid-cols-4 gap-3 sm:gap-5 overflow-x-auto md:overflow-visible snap-x snap-mandatory pb-2">
+					{products.map((product) => (
+						<div class="w-[62vw] sm:w-[40vw] md:w-auto shrink-0 snap-start">
+							<ProductCard product={product} currency={currency} lang={lang} />
+						</div>
+					))}
+				</div>
+			) : (
+				<div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
+					{products.map((product) => (
+						<ProductCard product={product} currency={currency} lang={lang} />
+					))}
+				</div>
+			)}
+		</section>
+	)
+}

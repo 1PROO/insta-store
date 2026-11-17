@@ -1,0 +1,46 @@
+---
+import type { ValuePillar } from '../../lib/domain/types';
+
+interface Props {
+	pillars: ValuePillar[];
+}
+
+const { pillars } = Astro.props;
+---
+
+{
+	pillars.length > 0 && (
+		<section class="max-w-6xl mx-auto px-4 pt-12 sm:pt-16">
+			<div class="grid sm:grid-cols-3 gap-4 sm:gap-6">
+				{pillars.map((pillar) => (
+					<div class="store-surface p-5 space-y-2">
+						<div
+							class="w-9 h-9 inline-flex items-center justify-center border"
+							style="border-color: var(--border-subtle); border-radius: var(--radius-btn);"
+						>
+							{pillar.icon === 'fabric' && (
+								<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M4 7l8-4 8 4-8 4-8-4Zm0 5l8 4 8-4M4 17l8 4 8-4" />
+								</svg>
+							)}
+							{pillar.icon === 'exchange' && (
+								<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M7 7h11l-3-3m3 3-3 3M17 17H6l3 3m-3-3 3-3" />
+								</svg>
+							)}
+							{pillar.icon === 'delivery' && (
+								<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M3 7h11v10H3V7Zm11 3h4l3 3v4h-7v-7Zm-8 9a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+								</svg>
+							)}
+						</div>
+						<h3 class="font-bold text-sm">{pillar.title}</h3>
+						<p class="text-xs leading-relaxed" style="color: var(--text-muted);">
+							{pillar.description}
+						</p>
+					</div>
+				))}
+			</div>
+		</section>
+	)
+}
