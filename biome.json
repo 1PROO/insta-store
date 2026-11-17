@@ -6,7 +6,15 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"includes": ["**", "!dist", "!.astro", "!.wrangler", "!node_modules", "!.motalim"]
+		"includes": [
+			"**",
+			"!dist",
+			"!.astro",
+			"!.wrangler",
+			"!node_modules",
+			"!.motalim",
+			"!worker-configuration.d.ts"
+		]
 	},
 	"formatter": {
 		"enabled": true,

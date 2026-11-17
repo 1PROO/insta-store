@@ -1,0 +1,22 @@
+---
+import OrdersManager from '../../components/admin/OrdersManager';
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getAuthenticatedAdmin } from '../../lib/auth/guard';
+import { listD1Orders } from '../../lib/data/d1-admin';
+import { getD1StoreConfig } from '../../lib/data/d1-store';
+import { getWorkerEnv } from '../../lib/env';
+
+const admin = await getAuthenticatedAdmin(Astro.cookies);
+if (!admin) return Astro.redirect('/admin/login');
+
+const env = await getWorkerEnv();
+const orders = env.DB ? await listD1Orders(env.DB) : [];
+const cfg = env.DB ? await getD1StoreConfig(env.DB) : null;
+---
+
+<AdminLayout title="الطلبات" activeTab="orders" mustChangePassword={admin.must_change_password === 1}>
+	<div class="space-y-4">
+		<h1 class="text-xl font-extrabold">إدارة الطلبات</h1>
+		<OrdersManager client:load initialOrders={orders} currency={cfg?.currency ?? 'ج.م'} />
+	</div>
+</AdminLayout>

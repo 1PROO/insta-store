@@ -1,0 +1,23 @@
+---
+import ThemeEditor from '../../components/admin/ThemeEditor';
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getAuthenticatedAdmin } from '../../lib/auth/guard';
+import { getD1HomepageSections, getD1StoreConfig } from '../../lib/data/d1-store';
+import { DEFAULT_STORE_CONFIG } from '../../lib/data/sample-catalog';
+import { SAMPLE_HOMEPAGE_SECTIONS } from '../../lib/data/sample-sections';
+import { getWorkerEnv } from '../../lib/env';
+
+const admin = await getAuthenticatedAdmin(Astro.cookies);
+if (!admin) return Astro.redirect('/admin/login');
+
+const env = await getWorkerEnv();
+const config = (env.DB ? await getD1StoreConfig(env.DB) : null) ?? DEFAULT_STORE_CONFIG;
+const sections = env.DB ? await getD1HomepageSections(env.DB) : SAMPLE_HOMEPAGE_SECTIONS;
+---
+
+<AdminLayout title="الهوية والتصميم" activeTab="theme" mustChangePassword={admin.must_change_password === 1}>
+	<div class="space-y-4">
+		<h1 class="text-xl font-extrabold">تخصيص الهوية والصفحة الرئيسية</h1>
+		<ThemeEditor client:load initialConfig={config} initialSections={sections} />
+	</div>
+</AdminLayout>

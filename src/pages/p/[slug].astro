@@ -11,45 +11,66 @@ const [config, product] = await Promise.all([
 	repo.getProductBySlug(slug),
 ]);
 
-if (!product) {
-	return Astro.redirect('/shop');
-}
-
 const lang = resolveActiveUiLang(config, Astro.url, Astro.cookies.get('ui_lang')?.value);
 const dict = getUiDict(lang);
-const effectiveSizeGuide = product.sizeGuide ?? config.defaultSizeGuide;
+
+if (!product) {
+	Astro.response.status = 404;
+}
+const effectiveSizeGuide = product ? (product.sizeGuide ?? config.defaultSizeGuide) : null;
 ---
 
-<StoreLayout config={config} lang={lang} pageTitle={product.title}>
-	<div class="max-w-6xl mx-auto px-4 pt-6 sm:pt-10">
-		<nav class="text-xs mb-5 flex items-center gap-2" style="color: var(--text-muted);">
-			<a href="/" class="hover:underline">{dict.navHome}</a>
-			<span>/</span>
-			<a href="/shop" class="hover:underline">{dict.navShop}</a>
-			<span>/</span>
-			<span style="color: var(--text-primary);">{product.title}</span>
-		</nav>
+<StoreLayout
+	config={config}
+	lang={lang}
+	pageTitle={product ? product.title : '404'}
+	pageDescription={product?.description.slice(0, 155)}
+	ogImage={product?.images[0]}
+	ogType={product ? 'product' : 'website'}
+>
+	{
+		product ? (
+			<div class="max-w-6xl mx-auto px-4 pt-6 sm:pt-10">
+				<nav class="text-xs mb-5 flex items-center gap-2" style="color: var(--text-muted);">
+					<a href="/" class="hover:underline">{dict.navHome}</a>
+					<span>/</span>
+					<a href="/shop" class="hover:underline">{dict.navShop}</a>
+					<span>/</span>
+					<span style="color: var(--text-primary);">{product.title}</span>
+				</nav>
 
-		<ProductConfigurator
-			client:load
-			product={product}
-			currency={config.currency}
-			lang={lang}
-			effectiveSizeGuide={effectiveSizeGuide}
-			whatsappNumber={config.whatsappNumber}
-			labels={{
-				size: dict.sizeLabel,
-				color: dict.colorLabel,
-				sizeGuide: dict.sizeGuideLabel,
-				addToCart: dict.addToCart,
-				soldOut: dict.soldOutBadge,
-				description: dict.descriptionLabel,
-				fabricCare: dict.fabricCareLabel,
-				shippingInfo: dict.shippingInfoLabel,
-				readMore: dict.readMore,
-				readLess: dict.readLess,
-				askWhatsapp: dict.askWhatsappProduct,
-			}}
-		/>
-	</div>
+				<ProductConfigurator
+					client:load
+					product={product}
+					currency={config.currency}
+					lang={lang}
+					effectiveSizeGuide={effectiveSizeGuide}
+					whatsappNumber={config.whatsappNumber}
+					labels={{
+						size: dict.sizeLabel,
+						color: dict.colorLabel,
+						sizeGuide: dict.sizeGuideLabel,
+						addToCart: dict.addToCart,
+						soldOut: dict.soldOutBadge,
+						description: dict.descriptionLabel,
+						fabricCare: dict.fabricCareLabel,
+						shippingInfo: dict.shippingInfoLabel,
+						readMore: dict.readMore,
+						readLess: dict.readLess,
+						askWhatsapp: dict.askWhatsappProduct,
+					}}
+				/>
+			</div>
+		) : (
+			<div class="max-w-lg mx-auto px-4 py-20 text-center space-y-4">
+				<h1 class="text-4xl font-extrabold">404</h1>
+				<p class="text-sm" style="color: var(--text-muted);">
+					{lang === 'en' ? 'Product not found.' : 'عذراً، هذا المنتج غير موجود.'}
+				</p>
+				<a href="/shop" class="inline-block px-5 py-2.5 text-xs font-bold store-btn-primary">
+					{lang === 'en' ? 'Browse All Pieces' : 'تصفح كل المنتجات'}
+				</a>
+			</div>
+		)
+	}
 </StoreLayout>

@@ -1,11 +1,13 @@
 ---
 import type { BrandStoryBlock } from '../../lib/domain/types';
+import { sanitizeHref } from '../../lib/security/urls';
 
 interface Props {
 	story: BrandStoryBlock | null;
 }
 
 const { story } = Astro.props;
+const safeHref = story ? sanitizeHref(story.ctaHref, '/shop') : '/shop';
 ---
 
 {
@@ -20,7 +22,7 @@ const { story } = Astro.props;
 					<p class="text-sm leading-relaxed" style="color: var(--text-muted);">
 						{story.body}
 					</p>
-					<a href={story.ctaHref} class="inline-block px-5 py-2.5 text-xs font-bold store-btn-primary">
+					<a href={safeHref} class="inline-block px-5 py-2.5 text-xs font-bold store-btn-primary">
 						{story.ctaLabel}
 					</a>
 				</div>

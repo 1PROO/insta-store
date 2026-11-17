@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { LookbookSlide } from '../../lib/domain/types';
+import { sanitizeHref } from '../../lib/security/urls';
 
 interface Props {
 	slides: LookbookSlide[];
@@ -28,7 +29,7 @@ export default function LookbookSlideshow({ slides }: Props) {
 					<p className="text-xs sm:text-sm text-white/85 mb-5 leading-relaxed">{active.subtitle}</p>
 					<div>
 						<a
-							href={active.ctaHref}
+							href={sanitizeHref(active.ctaHref, '/shop')}
 							className="inline-block px-5 py-2.5 text-xs font-bold"
 							style={{
 								backgroundColor: 'var(--btn-bg)',
@@ -42,17 +43,22 @@ export default function LookbookSlideshow({ slides }: Props) {
 				</div>
 
 				{slides.length > 1 && (
-					<div className="absolute bottom-5 end-5 z-20 flex items-center gap-2">
+					<div className="absolute bottom-4 end-4 z-20 flex items-center gap-1">
 						{slides.map((s, idx) => (
 							<button
 								key={s.id}
 								type="button"
 								aria-label={`Slide ${idx + 1}`}
+								aria-current={idx === index ? 'true' : undefined}
 								onClick={() => setIndex(idx)}
-								className={`h-2 rounded-full transition-all ${
-									idx === index ? 'w-6 bg-white' : 'w-2 bg-white/45'
-								}`}
-							/>
+								className="p-2 inline-flex items-center justify-center"
+							>
+								<span
+									className={`h-2 rounded-full transition-all block ${
+										idx === index ? 'w-6 bg-white' : 'w-2 bg-white/50'
+									}`}
+								/>
+							</button>
 						))}
 					</div>
 				)}

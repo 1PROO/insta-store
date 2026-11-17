@@ -1,6 +1,6 @@
 # insta-store
 
-White-label, mobile-first customizable clothing store template built with Astro 7, React islands, Tailwind CSS v4, Cloudflare Workers + D1, and Cloudinary Free.
+White-label, mobile-first customizable clothing store template built with Astro 6.4 (Vite 7), React 19 islands, Tailwind CSS v4, Cloudflare Workers + D1, and Cloudinary Free.
 
 ## Documentation
 

@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
-import { type CartItem, clearCart, readCart } from '../../lib/commerce/cart-store';
+import {
+	type CartItem,
+	clearCart,
+	readCart,
+	updateCartQuantity,
+} from '../../lib/commerce/cart-store';
 import type { GuestOrder, ShippingZone } from '../../lib/domain/types';
 import CheckoutSummaryPanel, { type QuotePreview } from './CheckoutSummaryPanel';
 import OrderConfirmationCard from './OrderConfirmationCard';
@@ -10,6 +15,7 @@ interface Props {
 	lang: 'ar' | 'en';
 	whatsappNumber: string | null;
 	globalFreeShippingThreshold: number | null;
+	turnstileSiteKey?: string | null;
 }
 
 export default function CheckoutForm({
@@ -18,6 +24,7 @@ export default function CheckoutForm({
 	lang,
 	whatsappNumber,
 	globalFreeShippingThreshold,
+	turnstileSiteKey = null,
 }: Props) {
 	const [items, setItems] = useState<CartItem[]>([]);
 	const [zoneId, setZoneId] = useState(zones[0]?.id ?? '');
@@ -29,6 +36,7 @@ export default function CheckoutForm({
 	const [customerPhone, setCustomerPhone] = useState('');
 	const [address, setAddress] = useState('');
 	const [notes, setNotes] = useState('');
+	const [turnstileToken, setTurnstileToken] = useState('');
 	const [idempotencyKey] = useState(() =>
 		typeof crypto !== 'undefined' && 'randomUUID' in crypto
 			? crypto.randomUUID()
@@ -41,6 +49,22 @@ export default function CheckoutForm({
 	useEffect(() => {
 		setItems(readCart());
 	}, []);
+
+	useEffect(() => {
+		if (!turnstileSiteKey || !items.length) return;
+		const win = window as unknown as {
+			onInstaTurnstileSuccess?: (t: string) => void;
+		};
+		win.onInstaTurnstileSuccess = (token: string) => setTurnstileToken(token);
+		if (!document.getElementById('cf-turnstile-script')) {
+			const s = document.createElement('script');
+			s.id = 'cf-turnstile-script';
+			s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+			s.async = true;
+			s.defer = true;
+			document.head.appendChild(s);
+		}
+	}, [turnstileSiteKey, items.length]);
 
 	useEffect(() => {
 		if (!items.length || !zoneId) {
@@ -60,9 +84,9 @@ export default function CheckoutForm({
 				couponCode: appliedCode || null,
 			}),
 		})
-			.then((r) => r.json())
+			.then((r) => r.json() as Promise<{ ok: boolean; quote?: QuotePreview; error?: string }>)
 			.then((data) => {
-				if (data.ok) {
+				if (data.ok && data.quote) {
 					setQuote(data.quote);
 					if (appliedCode) setCouponMsg(lang === 'en' ? 'Coupon applied ✓' : 'تم تطبيق الكود ✓');
 				} else if (appliedCode) {
@@ -73,7 +97,7 @@ export default function CheckoutForm({
 			.catch(() => {});
 	}, [items, zoneId, appliedCode, lang]);
 
-	async function handleSubmit(e: React.FormEvent) {
+	async function handleSubmit(e: React.SyntheticEvent) {
 		e.preventDefault();
 		setErrorMsg('');
 		setSubmitting(true);
@@ -89,6 +113,7 @@ export default function CheckoutForm({
 					notes,
 					couponCode: appliedCode || null,
 					idempotencyKey,
+					turnstileToken,
 					items: items.map((i) => ({
 						productId: i.productId,
 						variantId: i.variantId,
@@ -96,8 +121,8 @@ export default function CheckoutForm({
 					})),
 				}),
 			});
-			const data = await res.json();
-			if (!res.ok || !data.ok) {
+			const data = (await res.json()) as { ok: boolean; order?: GuestOrder; error?: string };
+			if (!res.ok || !data.ok || !data.order) {
 				setErrorMsg(data.error || 'تعذر إرسال الطلب.');
 				setSubmitting(false);
 				return;
@@ -184,8 +209,13 @@ export default function CheckoutForm({
 						id="shipZone"
 						value={zoneId}
 						onChange={(e) => setZoneId(e.target.value)}
-						className="w-full px-3.5 py-2.5 text-sm border bg-transparent"
-						style={{ borderColor: 'var(--border-subtle)', borderRadius: 'var(--radius-btn)' }}
+						className="w-full px-3.5 py-2.5 text-sm border"
+						style={{
+							backgroundColor: 'var(--bg-surface)',
+							color: 'var(--text-primary)',
+							borderColor: 'var(--border-subtle)',
+							borderRadius: 'var(--radius-btn)',
+						}}
 					>
 						{zones.map((z) => (
 							<option key={z.id} value={z.id}>
@@ -220,6 +250,13 @@ export default function CheckoutForm({
 						style={{ borderColor: 'var(--border-subtle)', borderRadius: 'var(--radius-btn)' }}
 					/>
 				</div>
+				{turnstileSiteKey && (
+					<div
+						className="cf-turnstile pt-1"
+						data-sitekey={turnstileSiteKey}
+						data-callback="onInstaTurnstileSuccess"
+					/>
+				)}
 			</div>
 
 			<CheckoutSummaryPanel
@@ -229,11 +266,18 @@ export default function CheckoutForm({
 				lang={lang}
 				freeThreshold={freeThreshold}
 				couponInput={couponInput}
+				appliedCode={appliedCode}
 				couponMsg={couponMsg}
 				errorMsg={errorMsg}
 				submitting={submitting}
+				onUpdateQty={(vid, q) => setItems(updateCartQuantity(vid, q))}
 				onCouponInputChange={setCouponInput}
 				onApplyCoupon={() => setAppliedCode(couponInput.trim().toUpperCase())}
+				onRemoveCoupon={() => {
+					setAppliedCode('');
+					setCouponInput('');
+					setCouponMsg('');
+				}}
 			/>
 		</form>
 	);

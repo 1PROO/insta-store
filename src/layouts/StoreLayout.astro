@@ -2,6 +2,7 @@
 import CartDrawer from '../components/store/CartDrawer';
 import type { StoreConfig, UiLang } from '../lib/domain/types';
 import { getUiDict } from '../lib/i18n/ui';
+import { sanitizeHref } from '../lib/security/urls';
 import { renderThemeCssVariables, resolveThemeTokens } from '../lib/theme/presets';
 import '../styles/global.css';
 
@@ -9,9 +10,12 @@ interface Props {
 	config: StoreConfig;
 	lang: UiLang;
 	pageTitle?: string;
+	pageDescription?: string;
+	ogImage?: string;
+	ogType?: 'website' | 'product';
 }
 
-const { config, lang, pageTitle } = Astro.props;
+const { config, lang, pageTitle, pageDescription, ogImage, ogType = 'website' } = Astro.props;
 const dict = getUiDict(lang);
 const { tokens } = resolveThemeTokens({
 	presetId: config.presetId,
@@ -23,12 +27,20 @@ const { tokens } = resolveThemeTokens({
 const themeCss = renderThemeCssVariables(tokens);
 const dir = lang === 'en' ? 'ltr' : 'rtl';
 const fullTitle = pageTitle ? `${pageTitle} | ${config.storeName}` : config.storeName;
+const metaDesc = pageDescription || config.tagline;
+const metaImg = ogImage || config.heroPosterUrl;
+const canonicalUrl = `${Astro.url.origin}${Astro.url.pathname}`;
 
+const nextLang = lang === 'ar' ? 'en' : 'ar';
 const toggleUrl = new URL(Astro.url);
-toggleUrl.searchParams.set('lang', lang === 'ar' ? 'en' : 'ar');
+toggleUrl.searchParams.set('lang', nextLang);
+
 const whatsappHref = config.whatsappNumber
 	? `https://wa.me/${config.whatsappNumber.replace(/[^0-9]/g, '')}`
 	: null;
+const safeInstaHref = config.instagramUrl ? sanitizeHref(config.instagramUrl, '') : '';
+const safeMetaPixel = config.metaPixelId?.replace(/[^0-9]/g, '') || null;
+const safeTiktokPixel = config.tiktokPixelId?.replace(/[^a-zA-Z0-9_-]/g, '') || null;
 ---
 
 <!doctype html>
@@ -37,13 +49,37 @@ const whatsappHref = config.whatsappNumber
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>{fullTitle}</title>
-		<meta name="description" content={config.tagline} />
+		<meta name="description" content={metaDesc} />
+		<link rel="canonical" href={canonicalUrl} />
+		<link rel="icon" href={config.logoUrl || '/samples/hero-poster.svg'} />
+		<meta property="og:type" content={ogType} />
 		<meta property="og:title" content={fullTitle} />
-		<meta property="og:description" content={config.tagline} />
-		<meta property="og:image" content={config.heroPosterUrl} />
+		<meta property="og:description" content={metaDesc} />
+		<meta property="og:image" content={metaImg} />
+		<meta property="og:url" content={canonicalUrl} />
 		<style is:inline set:html={themeCss}></style>
+		{
+			safeMetaPixel && (
+				<script
+					is:inline
+					set:html={`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${safeMetaPixel}');fbq('track','PageView');`}
+				/>
+			)
+		}
+		{
+			safeTiktokPixel && (
+				<script
+					is:inline
+					set:html={`!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie"];ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.load=function(e,n){var i="https://analytics.tiktok.com/i18n/pixel/events.js";ttq._i=ttq._i||{};ttq._i[e]=[];ttq._i[e]._u=i;ttq._t=ttq._t||{};ttq._t[e]=+new Date;ttq._o=ttq._o||{};ttq._o[e]=n||{};var o=document.createElement("script");o.type="text/javascript";o.async=!0;o.src=i+"?sdkid="+e+"&lib="+t;var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(o,a)};ttq.load('${safeTiktokPixel}');ttq.page()}(window,document,'ttq');`}
+				/>
+			)
+		}
 	</head>
 	<body class="min-h-screen flex flex-col">
+		<a href="#main-content" class="sr-only focus:not-sr-only focus:p-2 focus:bg-black focus:text-white">
+			{lang === 'en' ? 'Skip to content' : 'الانتقال للمحتوى'}
+		</a>
+
 		{
 			config.announcementText && (
 				<div
@@ -65,10 +101,11 @@ const whatsappHref = config.whatsappNumber
 						type="button"
 						id="mobileMenuBtn"
 						aria-label="Menu"
+						aria-expanded="false"
 						class="md:hidden w-10 h-10 inline-flex items-center justify-center rounded-md"
 						style="color: var(--text-primary);"
 					>
-						<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+						<svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
 							<path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16" />
 						</svg>
 					</button>
@@ -81,16 +118,34 @@ const whatsappHref = config.whatsappNumber
 					</nav>
 				</div>
 
-				<a href="/" class="text-base sm:text-lg font-extrabold tracking-[0.14em] uppercase truncate">
-					{config.storeName}
+				<a href="/" class="flex items-center gap-2 text-base sm:text-lg font-extrabold tracking-[0.14em] uppercase truncate">
+					{
+						config.logoUrl ? (
+							<img src={config.logoUrl} alt={config.storeName} class="h-8 w-auto object-contain" />
+						) : (
+							<span>{config.storeName}</span>
+						)
+					}
 				</a>
 
-				<div class="flex items-center gap-2">
+				<div class="flex items-center gap-1.5 sm:gap-2">
+					<a
+						href="/shop"
+						aria-label={lang === 'en' ? 'Search catalog' : 'بحث في المنتجات'}
+						class="w-9 h-9 inline-flex items-center justify-center border"
+						style="border-color: var(--border-subtle); border-radius: var(--radius-btn);"
+					>
+						<svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+							<circle cx="11" cy="11" r="7" />
+							<path stroke-linecap="round" d="m20 20-3.5-3.5" />
+						</svg>
+					</a>
 					{
 						config.languageMode === 'both' && (
 							<a
 								href={toggleUrl.pathname + toggleUrl.search}
-								class="text-xs font-semibold px-2.5 py-1.5 border"
+								data-set-lang={nextLang}
+								class="lang-switch text-xs font-semibold px-2.5 py-1.5 border"
 								style="border-color: var(--border-subtle); border-radius: var(--radius-btn);"
 							>
 								{dict.langToggleLabel}
@@ -102,7 +157,7 @@ const whatsappHref = config.whatsappNumber
 						id="headerCartBtn"
 						class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 store-btn-outline"
 					>
-						<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+						<svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -129,7 +184,7 @@ const whatsappHref = config.whatsappNumber
 			</div>
 		</header>
 
-		<main class="flex-1">
+		<main id="main-content" class="flex-1">
 			<slot />
 		</main>
 
@@ -153,9 +208,9 @@ const whatsappHref = config.whatsappNumber
 						)
 					}
 					{
-						config.instagramUrl && (
+						safeInstaHref && (
 							<a
-								href={config.instagramUrl}
+								href={safeInstaHref}
 								target="_blank"
 								rel="noopener noreferrer"
 								class="px-4 py-2 text-xs font-semibold store-btn-outline"
@@ -186,7 +241,8 @@ const whatsappHref = config.whatsappNumber
 			const drawer = document.getElementById('mobileDrawer');
 			if (menuBtn && drawer) {
 				menuBtn.addEventListener('click', () => {
-					drawer.classList.toggle('hidden');
+					const hidden = drawer.classList.toggle('hidden');
+					menuBtn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
 				});
 			}
 			const cartBtn = document.getElementById('headerCartBtn');
@@ -195,6 +251,12 @@ const whatsappHref = config.whatsappNumber
 					window.dispatchEvent(new CustomEvent('insta-store:open-cart'));
 				});
 			}
+			document.querySelectorAll('.lang-switch').forEach((el) => {
+				el.addEventListener('click', () => {
+					const val = el.getAttribute('data-set-lang');
+					if (val) document.cookie = `ui_lang=${val}; Path=/; Max-Age=2592000; SameSite=Lax`;
+				});
+			});
 		</script>
 	</body>
 </html>

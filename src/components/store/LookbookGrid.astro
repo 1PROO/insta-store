@@ -1,5 +1,6 @@
 ---
 import type { LookbookTile, UiLang } from '../../lib/domain/types';
+import { sanitizeHref } from '../../lib/security/urls';
 
 interface Props {
 	tiles: LookbookTile[];
@@ -19,7 +20,10 @@ const { tiles, lang } = Astro.props;
 			</div>
 			<div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
 				{tiles.map((tile) => (
-					<a href={tile.href} class="group relative block overflow-hidden store-card aspect-square">
+					<a
+						href={sanitizeHref(tile.href, '/shop')}
+						class="group relative block overflow-hidden store-card aspect-square"
+					>
 						<img
 							src={tile.imageUrl}
 							alt={tile.label}

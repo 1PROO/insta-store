@@ -1,5 +1,6 @@
 ---
 import type { PromoCard } from '../../lib/domain/types';
+import { sanitizeHref } from '../../lib/security/urls';
 
 interface Props {
 	cards: PromoCard[];
@@ -14,7 +15,7 @@ const { cards } = Astro.props;
 			<div class="grid md:grid-cols-2 gap-4 sm:gap-6">
 				{cards.map((card) => (
 					<a
-						href={card.ctaHref}
+						href={sanitizeHref(card.ctaHref, '/shop')}
 						class="group relative block overflow-hidden store-card aspect-[4/5] sm:aspect-[5/4]"
 					>
 						<img

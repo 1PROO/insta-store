@@ -1,0 +1,21 @@
+---
+import StoreLayout from '../layouts/StoreLayout.astro';
+import { createStoreRepository, resolveActiveUiLang } from '../lib/data/store-repository';
+
+Astro.response.status = 404;
+const repo = createStoreRepository();
+const config = await repo.getStoreConfig(Astro.url);
+const lang = resolveActiveUiLang(config, Astro.url, Astro.cookies.get('ui_lang')?.value);
+---
+
+<StoreLayout config={config} lang={lang} pageTitle="404">
+	<div class="max-w-lg mx-auto px-4 py-20 text-center space-y-4">
+		<h1 class="text-4xl font-extrabold">404</h1>
+		<p class="text-sm" style="color: var(--text-muted);">
+			{lang === 'en' ? 'This page or garment could not be found.' : 'عذراً، هذه الصفحة أو القطعة غير موجودة.'}
+		</p>
+		<a href="/shop" class="inline-block px-5 py-2.5 text-xs font-bold store-btn-primary">
+			{lang === 'en' ? 'Browse All Pieces' : 'تصفح كل المنتجات'}
+		</a>
+	</div>
+</StoreLayout>

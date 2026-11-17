@@ -13,34 +13,58 @@ const [config, collection, allProducts, collections] = await Promise.all([
 	repo.getVisibleCollections(),
 ]);
 
+const lang = resolveActiveUiLang(config, Astro.url, Astro.cookies.get('ui_lang')?.value);
 if (!collection) {
-	return Astro.redirect('/shop');
+	Astro.response.status = 404;
 }
 
-const lang = resolveActiveUiLang(config, Astro.url, Astro.cookies.get('ui_lang')?.value);
 const sizeParam = Astro.url.searchParams.get('size');
+const queryParam = Astro.url.searchParams.get('q');
 const inStockOnly = Astro.url.searchParams.get('inStock') === '1';
 const sortParam = (Astro.url.searchParams.get('sort') as CatalogSort | null) ?? 'newest';
 
-const filtered = filterCatalogProducts(allProducts, collections, {
-	collectionSlug: collection.slug,
-	size: sizeParam,
-	inStockOnly,
-	sort: sortParam,
-});
+const filtered = collection
+	? filterCatalogProducts(allProducts, collections, {
+			collectionSlug: collection.slug,
+			size: sizeParam,
+			query: queryParam,
+			inStockOnly,
+			sort: sortParam,
+		})
+	: [];
 ---
 
-<StoreLayout config={config} lang={lang} pageTitle={collection.name}>
-	<CatalogBrowser
-		title={collection.name}
-		products={filtered}
-		collections={collections}
-		currency={config.currency}
-		lang={lang}
-		activeCollectionSlug={collection.slug}
-		activeSize={sizeParam}
-		inStockOnly={inStockOnly}
-		activeSort={sortParam}
-		basePath={`/c/${collection.slug}`}
-	/>
+<StoreLayout
+	config={config}
+	lang={lang}
+	pageTitle={collection ? collection.name : '404'}
+	ogImage={collection?.imageUrl}
+>
+	{
+		collection ? (
+			<CatalogBrowser
+				title={collection.name}
+				products={filtered}
+				collections={collections}
+				currency={config.currency}
+				lang={lang}
+				activeCollectionSlug={collection.slug}
+				activeSize={sizeParam}
+				activeQuery={queryParam}
+				inStockOnly={inStockOnly}
+				activeSort={sortParam}
+				basePath={`/c/${collection.slug}`}
+			/>
+		) : (
+			<div class="max-w-lg mx-auto px-4 py-20 text-center space-y-4">
+				<h1 class="text-4xl font-extrabold">404</h1>
+				<p class="text-sm" style="color: var(--text-muted);">
+					{lang === 'en' ? 'Collection not found.' : 'عذراً، هذا القسم غير موجود.'}
+				</p>
+				<a href="/shop" class="inline-block px-5 py-2.5 text-xs font-bold store-btn-primary">
+					{lang === 'en' ? 'Browse All Pieces' : 'تصفح كل المنتجات'}
+				</a>
+			</div>
+		)
+	}
 </StoreLayout>

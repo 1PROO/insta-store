@@ -1,0 +1,81 @@
+---
+import { getAuthenticatedAdmin } from '../../lib/auth/guard';
+import '../../styles/global.css';
+
+const existing = await getAuthenticatedAdmin(Astro.cookies);
+if (existing) {
+	return Astro.redirect('/admin');
+}
+---
+
+<!doctype html>
+<html lang="ar" dir="rtl">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>تسجيل الدخول | لوحة تحكم المتجر</title>
+	</head>
+	<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
+		<div class="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 p-6 space-y-5">
+			<div>
+				<h1 class="text-xl font-extrabold">دخول صاحب المتجر</h1>
+				<p class="text-xs text-slate-400 mt-1">أدخل بيانات الدخول لإدارة المنتجات والهوية والطلبات.</p>
+			</div>
+
+			<form id="loginForm" class="space-y-4">
+				<div>
+					<label class="block text-xs font-bold mb-1" for="email">البريد الإلكتروني</label>
+					<input
+						id="email"
+						type="email"
+						required
+						autocomplete="username"
+						class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm"
+					/>
+				</div>
+				<div>
+					<label class="block text-xs font-bold mb-1" for="password">كلمة المرور</label>
+					<input
+						id="password"
+						type="password"
+						required
+						autocomplete="current-password"
+						class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-sm"
+					/>
+				</div>
+				<p id="loginErr" class="text-xs text-rose-400 font-bold hidden"></p>
+				<button
+					type="submit"
+					class="w-full py-3 rounded-xl bg-sky-500 text-slate-950 font-extrabold text-sm hover:bg-sky-400"
+				>
+					دخول إلى لوحة التحكم
+				</button>
+			</form>
+		</div>
+
+		<script is:inline>
+			const form = document.getElementById('loginForm');
+			const errEl = document.getElementById('loginErr');
+			form?.addEventListener('submit', async (e) => {
+				e.preventDefault();
+				errEl?.classList.add('hidden');
+				const email = document.getElementById('email').value;
+				const password = document.getElementById('password').value;
+				const res = await fetch('/api/admin/login', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ email, password }),
+				});
+				const data = await res.json();
+				if (!res.ok || !data.ok) {
+					if (errEl) {
+						errEl.textContent = data.error || 'فشل تسجيل الدخول.';
+						errEl.classList.remove('hidden');
+					}
+					return;
+				}
+				window.location.href = '/admin';
+			});
+		</script>
+	</body>
+</html>

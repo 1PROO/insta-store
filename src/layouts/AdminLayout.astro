@@ -1,0 +1,110 @@
+---
+import '../styles/global.css';
+
+interface Props {
+	title: string;
+	activeTab: 'home' | 'theme' | 'products' | 'orders' | 'settings';
+	mustChangePassword?: boolean;
+}
+
+const { title, activeTab, mustChangePassword = false } = Astro.props;
+
+const tabs = [
+	{ id: 'home', href: '/admin', label: 'الرئيسية' },
+	{ id: 'orders', href: '/admin/orders', label: 'الطلبات' },
+	{ id: 'products', href: '/admin/products', label: 'المنتجات' },
+	{ id: 'theme', href: '/admin/theme', label: 'الهوية' },
+	{ id: 'settings', href: '/admin/settings', label: 'الإعدادات' },
+] as const;
+---
+
+<!doctype html>
+<html lang="ar" dir="rtl">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{title} | لوحة التحكم</title>
+	</head>
+	<body class="bg-slate-950 text-slate-100 min-h-screen pb-20 md:pb-8">
+		<header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur border-b border-slate-800">
+			<div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+				<div class="flex items-center gap-3">
+					<span class="font-extrabold text-sm tracking-wide text-white">لوحة التحكم</span>
+					<nav class="hidden md:flex items-center gap-1.5">
+						{
+							tabs.map((t) => (
+								<a
+									href={t.href}
+									class={`px-3 py-1.5 rounded-lg text-xs font-bold ${
+										activeTab === t.id
+											? 'bg-sky-500 text-slate-950'
+											: 'text-slate-300 hover:bg-slate-800'
+									}`}
+								>
+									{t.label}
+								</a>
+							))
+						}
+					</nav>
+				</div>
+
+				<div class="flex items-center gap-2">
+					<a
+						href="/"
+						target="_blank"
+						class="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-700 text-slate-200 hover:bg-slate-800"
+					>
+						عرض المتجر
+					</a>
+					<button
+						type="button"
+						id="adminLogoutBtn"
+						class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-rose-300 hover:bg-slate-700"
+					>
+						خروج
+					</button>
+				</div>
+			</div>
+		</header>
+
+		{
+			mustChangePassword && (
+				<div class="max-w-6xl mx-auto px-4 pt-4">
+					<div class="rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-200 flex flex-wrap items-center justify-between gap-2">
+						<span>تنبيه أمني: ما زلت تستخدم كلمة المرور المبدئية. يرجى تغييرها من الإعدادات.</span>
+						<a href="/admin/settings" class="underline font-bold">تغيير الآن</a>
+					</div>
+				</div>
+			)
+		}
+
+		<main class="max-w-6xl mx-auto px-4 py-6">
+			<slot />
+		</main>
+
+		<nav class="fixed bottom-0 inset-x-0 z-40 md:hidden bg-slate-900/95 backdrop-blur border-t border-slate-800 grid grid-cols-5">
+			{
+				tabs.map((t) => (
+					<a
+						href={t.href}
+						class={`py-3 text-center text-[11px] font-bold ${
+							activeTab === t.id ? 'text-sky-400 bg-slate-800/60' : 'text-slate-400'
+						}`}
+					>
+						{t.label}
+					</a>
+				))
+			}
+		</nav>
+
+		<script is:inline>
+			const logoutBtn = document.getElementById('adminLogoutBtn');
+			if (logoutBtn) {
+				logoutBtn.addEventListener('click', async () => {
+					await fetch('/api/admin/logout', { method: 'POST' });
+					window.location.href = '/admin/login';
+				});
+			}
+		</script>
+	</body>
+</html>

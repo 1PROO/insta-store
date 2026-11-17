@@ -1,0 +1,80 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { getAuthenticatedAdmin } from '../../lib/auth/guard';
+import { getWorkerEnv } from '../../lib/env';
+
+const admin = await getAuthenticatedAdmin(Astro.cookies);
+if (!admin) {
+	return Astro.redirect('/admin/login');
+}
+
+const env = await getWorkerEnv();
+const db = env.DB;
+
+let newOrdersCount = 0;
+let publishedProductsCount = 0;
+let lowStockCount = 0;
+let storeName = 'متجرك';
+
+if (db) {
+	const [o, p, v, c] = await Promise.all([
+		db.prepare("SELECT COUNT(*) as cnt FROM orders WHERE status = 'new'").first<{ cnt: number }>(),
+		db
+			.prepare(
+				"SELECT COUNT(*) as cnt FROM products WHERE status = 'published' AND deleted_at IS NULL",
+			)
+			.first<{ cnt: number }>(),
+		db.prepare('SELECT COUNT(*) as cnt FROM variants WHERE stock <= 2').first<{ cnt: number }>(),
+		db.prepare('SELECT store_name FROM store_config WHERE id = 1').first<{ store_name: string }>(),
+	]);
+	newOrdersCount = o?.cnt ?? 0;
+	publishedProductsCount = p?.cnt ?? 0;
+	lowStockCount = v?.cnt ?? 0;
+	storeName = c?.store_name ?? storeName;
+}
+---
+
+<AdminLayout title="الرئيسية" activeTab="home" mustChangePassword={admin.must_change_password === 1}>
+	<div class="space-y-6">
+		<div>
+			<h1 class="text-xl font-extrabold">أهلاً بك في إدارة {storeName}</h1>
+			<p class="text-xs text-slate-400 mt-1">ملخص سريع للطلبات والمنتجات من الموبايل.</p>
+		</div>
+
+		<div class="grid grid-cols-3 gap-3">
+			<a href="/admin/orders" class="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+				<span class="text-[11px] text-slate-400 block">طلبات جديدة</span>
+				<strong class="text-2xl font-extrabold text-sky-400">{newOrdersCount}</strong>
+			</a>
+			<a href="/admin/products" class="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+				<span class="text-[11px] text-slate-400 block">منتجات منشورة</span>
+				<strong class="text-2xl font-extrabold text-emerald-400">{publishedProductsCount}</strong>
+			</a>
+			<a href="/admin/products" class="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+				<span class="text-[11px] text-slate-400 block">مقاسات منخفضة</span>
+				<strong class="text-2xl font-extrabold text-amber-400">{lowStockCount}</strong>
+			</a>
+		</div>
+
+		<div class="grid sm:grid-cols-2 gap-3">
+			<a
+				href="/admin/theme"
+				class="rounded-2xl border border-slate-800 bg-slate-900 p-5 hover:border-sky-500/50 transition"
+			>
+				<h2 class="font-bold text-base">تخصيص الهوية والألوان وفيديو الهيرو</h2>
+				<p class="text-xs text-slate-400 mt-1">
+					تغيير اسم المتجر، الباليت، لون الأزرار، الواتساب، الـ Pixels، وفيديو الواجهة.
+				</p>
+			</a>
+			<a
+				href="/admin/products"
+				class="rounded-2xl border border-slate-800 bg-slate-900 p-5 hover:border-sky-500/50 transition"
+			>
+				<h2 class="font-bold text-base">إدارة المنتجات والمقاسات والمخزون</h2>
+				<p class="text-xs text-slate-400 mt-1">
+					إضافة منتجات جديدة بالصور المضغوطة، ضبط المقاسات والألوان، وسلة المحذوفات.
+				</p>
+			</a>
+		</div>
+	</div>
+</AdminLayout>

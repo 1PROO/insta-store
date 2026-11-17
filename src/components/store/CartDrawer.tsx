@@ -35,11 +35,16 @@ export default function CartDrawer({
 			sync();
 			setOpen(true);
 		};
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') setOpen(false);
+		};
 		window.addEventListener(CART_EVENT, sync);
 		window.addEventListener('insta-store:open-cart', onOpen);
+		window.addEventListener('keydown', onKey);
 		return () => {
 			window.removeEventListener(CART_EVENT, sync);
 			window.removeEventListener('insta-store:open-cart', onOpen);
+			window.removeEventListener('keydown', onKey);
 		};
 	}, []);
 
@@ -56,7 +61,12 @@ export default function CartDrawer({
 	const subtotal = items.reduce((acc, i) => acc + i.unitPrice * i.quantity, 0);
 
 	return (
-		<div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-[2px]">
+		<div
+			role="dialog"
+			aria-modal="true"
+			aria-label={cartLabel}
+			className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-[2px]"
+		>
 			<button
 				type="button"
 				aria-label="Close Cart"
@@ -80,6 +90,7 @@ export default function CartDrawer({
 					</h2>
 					<button
 						type="button"
+						aria-label={lang === 'en' ? 'Close' : 'إغلاق'}
 						onClick={() => setOpen(false)}
 						className="w-9 h-9 inline-flex items-center justify-center rounded-md text-lg font-bold"
 					>
@@ -134,6 +145,7 @@ export default function CartDrawer({
 										>
 											<button
 												type="button"
+												aria-label="Decrease quantity"
 												className="w-7 h-7 text-sm font-bold"
 												onClick={() =>
 													setItems(updateCartQuantity(item.variantId, item.quantity - 1))
@@ -144,6 +156,7 @@ export default function CartDrawer({
 											<span className="px-2.5 text-xs font-bold">{item.quantity}</span>
 											<button
 												type="button"
+												aria-label="Increase quantity"
 												className="w-7 h-7 text-sm font-bold"
 												onClick={() =>
 													setItems(updateCartQuantity(item.variantId, item.quantity + 1))
