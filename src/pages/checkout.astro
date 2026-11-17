@@ -1,0 +1,28 @@
+---
+import CheckoutForm from '../components/store/CheckoutForm';
+import StoreLayout from '../layouts/StoreLayout.astro';
+import { createStoreRepository, resolveActiveUiLang } from '../lib/data/store-repository';
+import { getUiDict } from '../lib/i18n/ui';
+
+const repo = createStoreRepository();
+const [config, zones] = await Promise.all([
+	repo.getStoreConfig(Astro.url),
+	repo.getActiveShippingZones(),
+]);
+const lang = resolveActiveUiLang(config, Astro.url, Astro.cookies.get('ui_lang')?.value);
+const dict = getUiDict(lang);
+---
+
+<StoreLayout config={config} lang={lang} pageTitle={dict.checkoutTitle}>
+	<div class="max-w-5xl mx-auto px-4 py-8 space-y-6">
+		<h1 class="text-2xl sm:text-3xl font-extrabold">{dict.checkoutTitle}</h1>
+		<CheckoutForm
+			client:load
+			zones={zones}
+			currency={config.currency}
+			lang={lang}
+			whatsappNumber={config.whatsappNumber}
+			globalFreeShippingThreshold={config.globalFreeShippingThreshold}
+		/>
+	</div>
+</StoreLayout>

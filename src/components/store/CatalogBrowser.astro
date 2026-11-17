@@ -1,0 +1,131 @@
+---
+import type { CatalogSort } from '../../lib/commerce/catalog-filter';
+import type { Collection, Product, UiLang } from '../../lib/domain/types';
+import { getUiDict } from '../../lib/i18n/ui';
+import ProductCard from './ProductCard.astro';
+
+interface Props {
+	title: string;
+	products: Product[];
+	collections: Collection[];
+	currency: string;
+	lang: UiLang;
+	activeCollectionSlug?: string | null;
+	activeSize?: string | null;
+	inStockOnly?: boolean;
+	activeSort?: CatalogSort;
+	basePath: string;
+}
+
+const {
+	title,
+	products,
+	collections,
+	currency,
+	lang,
+	activeCollectionSlug,
+	activeSize,
+	inStockOnly = false,
+	activeSort = 'newest',
+	basePath,
+} = Astro.props;
+
+const dict = getUiDict(lang);
+const sizes = ['S', 'M', 'L', 'XL'];
+---
+
+<div class="max-w-6xl mx-auto px-4 py-8 space-y-6">
+	<div class="flex flex-wrap items-end justify-between gap-4 border-b pb-4" style="border-color: var(--border-subtle);">
+		<div>
+			<h1 class="text-2xl sm:text-3xl font-extrabold">{title}</h1>
+			<p class="text-xs mt-1" style="color: var(--text-muted);">
+				{products.length} {lang === 'en' ? 'pieces' : 'قطعة'}
+			</p>
+		</div>
+
+		<form method="get" action={basePath} class="flex flex-wrap items-center gap-2 text-xs">
+			{activeCollectionSlug && <input type="hidden" name="collection" value={activeCollectionSlug} />}
+			<select
+				name="size"
+				aria-label="Filter by size"
+				onchange="this.form.submit()"
+				class="px-3 py-2 border bg-transparent font-semibold"
+				style="border-color: var(--border-subtle); border-radius: var(--radius-btn);"
+			>
+				<option value="">{dict.filterAllSizes}</option>
+				{
+					sizes.map((s) => (
+						<option value={s} selected={activeSize?.toUpperCase() === s}>
+							{s}
+						</option>
+					))
+				}
+			</select>
+
+			<label
+				class="inline-flex items-center gap-1.5 px-3 py-2 border font-semibold cursor-pointer"
+				style="border-color: var(--border-subtle); border-radius: var(--radius-btn);"
+			>
+				<input type="checkbox" name="inStock" value="1" checked={inStockOnly} onchange="this.form.submit()" />
+				<span>{dict.filterInStock}</span>
+			</label>
+
+			<select
+				name="sort"
+				aria-label="Sort products"
+				onchange="this.form.submit()"
+				class="px-3 py-2 border bg-transparent font-semibold"
+				style="border-color: var(--border-subtle); border-radius: var(--radius-btn);"
+			>
+				<option value="newest" selected={activeSort === 'newest'}>{dict.sortNewest}</option>
+				<option value="price_asc" selected={activeSort === 'price_asc'}>{dict.sortPriceAsc}</option>
+				<option value="price_desc" selected={activeSort === 'price_desc'}>{dict.sortPriceDesc}</option>
+			</select>
+		</form>
+	</div>
+
+	{
+		collections.length > 0 && (
+			<div class="flex gap-2 overflow-x-auto pb-1 text-xs font-bold">
+				<a
+					href="/shop"
+					class="px-3.5 py-1.5 border shrink-0"
+					style={!activeCollectionSlug
+						? 'background-color: var(--btn-bg); color: var(--btn-text); border-radius: var(--radius-pill); border-color: var(--btn-bg);'
+						: 'border-color: var(--border-subtle); border-radius: var(--radius-pill);'}
+				>
+					{dict.viewAll}
+				</a>
+				{collections.map((c) => {
+					const isActive = activeCollectionSlug === c.slug;
+					return (
+						<a
+							href={`/c/${c.slug}`}
+							class="px-3.5 py-1.5 border shrink-0"
+							style={isActive
+								? 'background-color: var(--btn-bg); color: var(--btn-text); border-radius: var(--radius-pill); border-color: var(--btn-bg);'
+								: 'border-color: var(--border-subtle); border-radius: var(--radius-pill);'}
+						>
+							{c.name}
+						</a>
+					);
+				})}
+			</div>
+		)
+	}
+
+	{
+		products.length === 0 ? (
+			<div class="store-surface p-8 text-center space-y-4">
+				<p class="text-sm" style="color: var(--text-muted);">{dict.noProductsFound}</p>
+				<a href={basePath} class="inline-block px-5 py-2.5 text-xs font-bold store-btn-primary">
+					{dict.clearFilters}
+				</a>
+			</div>
+		) : (
+			<div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
+				{products.map((product) => <ProductCard product={product} currency={currency} lang={lang} />)}
+			</div>
+		)
+	}
+</div>
