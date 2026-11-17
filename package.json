@@ -1,0 +1,42 @@
+{
+	"name": "insta-store",
+	"type": "module",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev --host 0.0.0.0",
+		"build": "ASTRO_TELEMETRY_DISABLED=1 astro check && ASTRO_TELEMETRY_DISABLED=1 astro build",
+		"preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview --host 0.0.0.0",
+		"cf-typegen": "wrangler types",
+		"format": "biome format --write .",
+		"format:check": "biome format .",
+		"lint": "biome check .",
+		"guard:filesize": "node scripts/check-file-size.mjs",
+		"guard:secrets": "node scripts/check-secrets.mjs",
+		"guards": "npm run lint && npm run guard:filesize && npm run guard:secrets",
+		"test": "vitest run",
+		"prepare": "sh -c '[ -d .git ] && git config core.hooksPath .githooks || true'"
+	},
+	"dependencies": {
+		"@astrojs/cloudflare": "^13.7.0",
+		"@astrojs/react": "^5.0.7",
+		"@tailwindcss/vite": "^4.3.5",
+		"astro": "^6.4.8",
+		"react": "^19.2.0",
+		"react-dom": "^19.2.0",
+		"tailwindcss": "^4.3.5"
+	},
+	"devDependencies": {
+		"@astrojs/check": "^0.9.8",
+		"@biomejs/biome": "^2.6.8",
+		"@types/react": "^19.2.0",
+		"@types/react-dom": "^19.2.0",
+		"typescript": "^5.9.3",
+		"vite": "^7.3.2",
+		"vitest": "^5.1.0",
+		"wrangler": "^4.164.0"
+	},
+	"overrides": {
+		"vite": "^7.3.2"
+	}
+}

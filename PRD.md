@@ -7,6 +7,7 @@
 ---
 
 ## 1. Confirmed Decisions (Intake + Goldfish Resolution)
+
 - **Business Model & Hosting Topology:** Single-tenant cloneable template built once and deployed per client under the developer's Cloudflare account (`$0/mo` free tier for initial stores; upgrades to `$5/mo` Workers Paid on developer account once scaling beyond 10 D1 databases or free quotas — zero client credit-card friction).
 - **Primary Audience & UX:** **99% mobile** — both shoppers in Instagram's in-app browser and store owners managing the store from their phones (`375px` mobile-first for Storefront **and** Dashboard).
 - **Primary Visitor Action:** Browse lookbook/products → pick `variant` (size + color) → place `Guest Order` (COD) protected against spam, or message via owner's WhatsApp.
@@ -22,6 +23,7 @@
 ## 2. Scope of `v1` (What We WILL Build)
 
 ### A. Storefront (Mobile-First, Cached Edge SSR + Interactive Islands)
+
 Public storefront HTML and `store_config` are cached via Cloudflare Cache API and purged immediately when the owner saves changes in `Dashboard`, while `variant` stock is fetched freshly on product/checkout interaction.
 
 1. **Home (`/`)**
@@ -51,6 +53,7 @@ Public storefront HTML and `store_config` are cached via Cloudflare Cache API an
    - **Strict Privacy Rule:** Zero third-party network calls on page load other than configured Storefront media CDN (`res.cloudinary.com` / configured video host) and explicitly configured Analytics Pixels / Turnstile on checkout.
 
 ### B. Owner Dashboard (`/admin` — Mobile-First `375px` UX)
+
 1. **Auth & Security:** `/admin/login` (with lockout), server-side auth & `Origin` CSRF validation on every `/admin` page and `/api/admin/*` route, password change (`/admin/account`) invalidating old sessions via `session_version`.
 2. **Store & Theme Customizer (`/admin/theme`):**
    - Store name, logo upload, favicon/OG image, UI language mode (`ar` / `en` / `both`), default store language, currency label, `default_size_guide`.
@@ -75,12 +78,14 @@ Public storefront HTML and `store_config` are cached via Cloudflare Cache API an
 ---
 
 ## 3. Initial Setup & Operational Standards (Approved in `v1`)
+
 - **`npm run seed:blank`:** Seeds clean default `store_config`, initial `admin` user from environment/CLI prompt (forcing password change on first login, zero hardcoded credentials in repo), and starter governorate `shipping_zone` rows locally or via `wrangler d1 execute --remote`.
 - **Single-Client Deployment Script:** Parameterized `wrangler` config + migration runner (`wrangler d1 migrations apply`) so patching and deploying updates across N client stores stays automated and consistent.
 
 ---
 
 ## 4. Deferred (`نؤجل` — Explicitly Out of Scope for `v1`)
+
 - Online card / wallet payment gateways (Paymob, Stripe, automated InstaPay verification).
 - Customer accounts, login, wishlists, order history portal, and loyalty points.
 - Shared multi-tenant SaaS billing/super-admin portal.

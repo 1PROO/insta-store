@@ -1,6 +1,7 @@
 # Session Handoff — `insta-store`
 
 ## Where We Are
+
 - **Skill Active:** `motalim-web-builder` (`~/.gemini/config/skills/motalim-web-builder/SKILL.md`), **Track: `Pro`**.
 - **Phase 1 (Planning — 0 LOC): COMPLETED & GOLD-REVIEWED.**
   - Read [PRD.md](./PRD.md), [STACK.md](./STACK.md), and [GLOSSARY.md](./GLOSSARY.md).
