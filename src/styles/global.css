@@ -1,1 +1,35 @@
 @import "tailwindcss";
+
+@layer base {
+	body {
+		background-color: var(--bg-primary, #faf9f6);
+		color: var(--text-primary, #111111);
+		font-family: system-ui, -apple-system, "Segoe UI", Tahoma, Arial, sans-serif;
+		-webkit-font-smoothing: antialiased;
+	}
+}
+
+.store-surface {
+	background-color: var(--bg-surface);
+	border: 1px solid var(--border-subtle);
+	border-radius: var(--radius-card);
+}
+
+.store-btn-primary {
+	background-color: var(--btn-bg);
+	color: var(--btn-text);
+	border-radius: var(--radius-btn);
+}
+
+.store-btn-outline {
+	background-color: transparent;
+	color: var(--text-primary);
+	border: 1px solid var(--border-subtle);
+	border-radius: var(--radius-btn);
+}
+
+.store-card {
+	border-radius: var(--radius-card);
+	border: 1px solid var(--border-subtle);
+	background-color: var(--bg-surface);
+}

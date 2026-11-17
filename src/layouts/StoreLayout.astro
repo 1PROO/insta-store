@@ -1,0 +1,182 @@
+---
+import type { StoreConfig, UiLang } from '../lib/domain/types';
+import { getUiDict } from '../lib/i18n/ui';
+import { renderThemeCssVariables, resolveThemeTokens } from '../lib/theme/presets';
+import '../styles/global.css';
+
+interface Props {
+	config: StoreConfig;
+	lang: UiLang;
+	pageTitle?: string;
+}
+
+const { config, lang, pageTitle } = Astro.props;
+const dict = getUiDict(lang);
+const { tokens } = resolveThemeTokens({
+	presetId: config.presetId,
+	radiusPreset: config.radiusPreset,
+	customAccent: config.customAccent,
+	customBtnBg: config.customBtnBg,
+	customBtnText: config.customBtnText,
+});
+const themeCss = renderThemeCssVariables(tokens);
+const dir = lang === 'en' ? 'ltr' : 'rtl';
+const fullTitle = pageTitle ? `${pageTitle} | ${config.storeName}` : config.storeName;
+
+const toggleUrl = new URL(Astro.url);
+toggleUrl.searchParams.set('lang', lang === 'ar' ? 'en' : 'ar');
+const whatsappHref = config.whatsappNumber
+	? `https://wa.me/${config.whatsappNumber.replace(/[^0-9]/g, '')}`
+	: null;
+---
+
+<!doctype html>
+<html lang={lang} dir={dir}>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{fullTitle}</title>
+		<meta name="description" content={config.tagline} />
+		<meta property="og:title" content={fullTitle} />
+		<meta property="og:description" content={config.tagline} />
+		<meta property="og:image" content={config.heroPosterUrl} />
+		<style is:inline set:html={themeCss}></style>
+	</head>
+	<body class="min-h-screen flex flex-col">
+		{
+			config.announcementText && (
+				<div
+					class="text-xs font-medium text-center px-4 py-2 tracking-wide"
+					style="background-color: var(--btn-bg); color: var(--btn-text);"
+				>
+					{config.announcementText}
+				</div>
+			)
+		}
+
+		<header
+			class="sticky top-0 z-40 backdrop-blur-md border-b"
+			style="background-color: color-mix(in srgb, var(--bg-primary) 90%, transparent); border-color: var(--border-subtle);"
+		>
+			<div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+				<div class="flex items-center gap-2">
+					<button
+						type="button"
+						id="mobileMenuBtn"
+						aria-label="Menu"
+						class="md:hidden w-10 h-10 inline-flex items-center justify-center rounded-md"
+						style="color: var(--text-primary);"
+					>
+						<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+							<path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16" />
+						</svg>
+					</button>
+					<nav class="hidden md:flex items-center gap-5 text-sm font-medium">
+						<a href="/" class="hover:opacity-70">{dict.navHome}</a>
+						<a href="/shop" class="hover:opacity-70">{dict.navShop}</a>
+						<a href="/design-system" class="hover:opacity-70" style="color: var(--text-muted);"
+							>{dict.navDesignSystem}</a
+						>
+					</nav>
+				</div>
+
+				<a href="/" class="text-base sm:text-lg font-extrabold tracking-[0.14em] uppercase truncate">
+					{config.storeName}
+				</a>
+
+				<div class="flex items-center gap-2">
+					{
+						config.languageMode === 'both' && (
+							<a
+								href={toggleUrl.pathname + toggleUrl.search}
+								class="text-xs font-semibold px-2.5 py-1.5 border"
+								style="border-color: var(--border-subtle); border-radius: var(--radius-btn);"
+							>
+								{dict.langToggleLabel}
+							</a>
+						)
+					}
+					<a
+						href="/checkout"
+						class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 store-btn-outline"
+					>
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M6 7h12l-1 13H7L6 7Zm3 0a3 3 0 0 1 6 0"
+							/>
+						</svg>
+						<span>{dict.cartLabel}</span>
+						<span id="headerCartCount" class="text-[11px] opacity-75">(0)</span>
+					</a>
+				</div>
+			</div>
+
+			<div
+				id="mobileDrawer"
+				class="hidden md:hidden border-t px-4 py-4 space-y-3 text-sm font-medium"
+				style="background-color: var(--bg-surface); border-color: var(--border-subtle);"
+			>
+				<a href="/" class="block py-1">{dict.navHome}</a>
+				<a href="/shop" class="block py-1">{dict.navShop}</a>
+				<a href="/design-system" class="block py-1" style="color: var(--text-muted);"
+					>{dict.navDesignSystem}</a
+				>
+				<a href="/admin" class="block py-1" style="color: var(--text-muted);">{dict.navAdmin}</a>
+			</div>
+		</header>
+
+		<main class="flex-1">
+			<slot />
+		</main>
+
+		<footer class="border-t mt-14" style="border-color: var(--border-subtle); background-color: var(--bg-surface);">
+			<div class="max-w-6xl mx-auto px-4 py-10 grid gap-6 sm:grid-cols-2 items-center">
+				<div>
+					<p class="font-extrabold tracking-[0.12em] uppercase text-sm mb-1">{config.storeName}</p>
+					<p class="text-xs leading-relaxed" style="color: var(--text-muted);">{config.tagline}</p>
+				</div>
+				<div class="flex flex-wrap gap-3 sm:justify-end">
+					{
+						whatsappHref && (
+							<a
+								href={whatsappHref}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="px-4 py-2 text-xs font-semibold store-btn-primary"
+							>
+								{dict.whatsappLabel}
+							</a>
+						)
+					}
+					{
+						config.instagramUrl && (
+							<a
+								href={config.instagramUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="px-4 py-2 text-xs font-semibold store-btn-outline"
+							>
+								{dict.instagramLabel}
+							</a>
+						)
+					}
+					<a href="/design-system" class="px-4 py-2 text-xs font-semibold store-btn-outline">
+						{dict.navDesignSystem}
+					</a>
+				</div>
+			</div>
+		</footer>
+
+		<script is:inline>
+			const menuBtn = document.getElementById('mobileMenuBtn');
+			const drawer = document.getElementById('mobileDrawer');
+			if (menuBtn && drawer) {
+				menuBtn.addEventListener('click', () => {
+					drawer.classList.toggle('hidden');
+				});
+			}
+		</script>
+	</body>
+</html>

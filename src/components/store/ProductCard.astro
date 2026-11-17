@@ -1,0 +1,87 @@
+---
+import { formatMoney } from '../../lib/data/store-repository';
+import type { Product, UiLang } from '../../lib/domain/types';
+import { getUiDict } from '../../lib/i18n/ui';
+
+interface Props {
+	product: Product;
+	currency: string;
+	lang: UiLang;
+}
+
+const { product, currency, lang } = Astro.props;
+const dict = getUiDict(lang);
+
+const totalStock = product.variants.reduce((acc, v) => acc + v.stock, 0);
+const isSoldOut = totalStock <= 0;
+const hasSale =
+	!isSoldOut && product.compareAtPrice !== null && product.compareAtPrice > product.basePrice;
+
+const uniqueColors: Array<{ name: string; hex: string }> = [];
+for (const v of product.variants) {
+	if (!uniqueColors.some((c) => c.hex.toLowerCase() === v.colorHex.toLowerCase())) {
+		uniqueColors.push({ name: v.colorName, hex: v.colorHex });
+	}
+}
+const visibleColors = uniqueColors.slice(0, 4);
+const extraColors = Math.max(0, uniqueColors.length - 4);
+---
+
+<article class="group flex flex-col">
+	<a
+		href={`/p/${product.slug}`}
+		class="relative block overflow-hidden store-card aspect-[3/4] mb-2.5"
+	>
+		<img
+			src={product.images[0] ?? '/samples/hero-poster.svg'}
+			alt={product.title}
+			loading="lazy"
+			class={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${isSoldOut ? 'opacity-65' : ''}`}
+		/>
+		{
+			isSoldOut ? (
+				<span
+					class="absolute top-2.5 start-2.5 text-[11px] font-bold px-2.5 py-1"
+					style="background-color: rgba(17,17,17,0.85); color: #ffffff; border-radius: var(--radius-btn);"
+				>
+					{dict.soldOutBadge}
+				</span>
+			) : hasSale ? (
+				<span
+					class="absolute top-2.5 start-2.5 text-[11px] font-bold px-2.5 py-1"
+					style="background-color: var(--btn-bg); color: var(--btn-text); border-radius: var(--radius-btn);"
+				>
+					{dict.saleBadge}
+				</span>
+			) : null
+		}
+	</a>
+
+	<div class="flex items-center gap-1.5 mb-1.5 min-h-[16px]">
+		{
+			visibleColors.map((c) => (
+				<span
+					title={c.name}
+					class="w-3.5 h-3.5 rounded-full border"
+					style={`background-color: ${c.hex}; border-color: var(--border-subtle);`}
+				/>
+			))
+		}
+		{extraColors > 0 && <span class="text-[11px]" style="color: var(--text-muted);">+{extraColors}</span>}
+	</div>
+
+	<a href={`/p/${product.slug}`} class="text-sm font-semibold leading-snug line-clamp-2 hover:underline">
+		{product.title}
+	</a>
+
+	<div class="mt-1 flex items-center gap-2 text-sm">
+		<span class="font-bold">{formatMoney(product.basePrice, currency)}</span>
+		{
+			hasSale && product.compareAtPrice && (
+				<span class="text-xs line-through" style="color: var(--text-muted);">
+					{formatMoney(product.compareAtPrice, currency)}
+				</span>
+			)
+		}
+	</div>
+</article>
